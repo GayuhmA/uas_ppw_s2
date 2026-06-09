@@ -26,8 +26,8 @@ body {
         var(--bg);
     background-size: 72px 72px;
     color: var(--ink);
-    font-family: "Afacad", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 17px;
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
 }
 
 a {
@@ -43,12 +43,14 @@ a:hover {
     background: rgba(246, 249, 252, 0.88);
     border-bottom: 1px solid var(--border);
     backdrop-filter: blur(18px);
+    padding-block: 0.75rem;
 }
 
 .navbar-brand {
     align-items: center;
     color: var(--ink);
     display: inline-flex;
+    font-size: 0.98rem;
     font-weight: 700;
     gap: 0.65rem;
 }
@@ -60,16 +62,16 @@ a:hover {
     border-radius: 8px;
     color: #ffffff;
     display: inline-flex;
-    font-family: "Fraunces", serif;
     font-size: 1rem;
-    height: 36px;
+    height: 34px;
     justify-content: center;
-    width: 36px;
+    width: 34px;
 }
 
 .nav-link {
     border-radius: 8px;
     color: var(--muted);
+    font-size: 0.92rem;
     font-weight: 700;
     padding-inline: 0.9rem !important;
 }
@@ -86,7 +88,7 @@ a:hover {
 
 .hero-section {
     overflow: hidden;
-    padding: 5.5rem 0 2.75rem;
+    padding: 4.35rem 0 2.35rem;
     position: relative;
 }
 
@@ -105,7 +107,7 @@ a:hover {
 .eyebrow {
     color: var(--brand-dark);
     display: inline-block;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0;
     margin-bottom: 0.9rem;
@@ -113,27 +115,25 @@ a:hover {
 }
 
 .hero-title,
-.section-heading h2,
-.section-title {
+.section-heading h2 {
     color: var(--ink);
-    font-family: "Fraunces", Georgia, serif;
     font-weight: 800;
     letter-spacing: 0;
 }
 
 .hero-title {
-    font-size: clamp(2.35rem, 5vw, 4.9rem);
-    line-height: 0.98;
-    margin-bottom: 1.25rem;
-    max-width: 790px;
+    font-size: clamp(2.15rem, 4vw, 3.75rem);
+    line-height: 1.08;
+    margin-bottom: 1.15rem;
+    max-width: 680px;
 }
 
 .hero-copy {
     color: var(--muted);
-    font-size: 1.12rem;
-    line-height: 1.7;
-    margin-bottom: 1.8rem;
-    max-width: 640px;
+    font-size: 1rem;
+    line-height: 1.78;
+    margin-bottom: 1.55rem;
+    max-width: 610px;
 }
 
 .hero-actions {
@@ -144,7 +144,9 @@ a:hover {
 
 .btn {
     border-radius: 8px;
+    font-size: 0.95rem;
     font-weight: 800;
+    padding: 0.72rem 1.1rem;
 }
 
 .btn-primary {
@@ -175,10 +177,10 @@ a:hover {
 .hero-metrics {
     border-top: 1px solid var(--border);
     display: flex;
-    gap: 1.75rem;
-    margin-top: 2rem;
-    max-width: 560px;
-    padding-top: 1.25rem;
+    gap: 1.25rem;
+    margin-top: 1.75rem;
+    max-width: 500px;
+    padding-top: 1.1rem;
 }
 
 .hero-metrics div {
@@ -188,15 +190,14 @@ a:hover {
 .hero-metrics strong {
     color: var(--ink);
     display: block;
-    font-family: "Fraunces", serif;
-    font-size: 1.55rem;
+    font-size: 1.28rem;
     line-height: 1;
 }
 
 .hero-metrics span {
     color: var(--muted);
     display: block;
-    font-size: 0.92rem;
+    font-size: 0.8rem;
     font-weight: 700;
     margin-top: 0.25rem;
 }
@@ -208,7 +209,9 @@ a:hover {
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: var(--shadow);
-    padding: 1.15rem;
+    margin-left: auto;
+    max-width: 570px;
+    padding: 1rem;
     position: relative;
 }
 
@@ -233,13 +236,12 @@ a:hover {
 .mini-label {
     color: var(--muted);
     display: block;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     font-weight: 800;
 }
 
 .visual-topline h2 {
-    font-family: "Fraunces", serif;
-    font-size: 1.45rem;
+    font-size: 1.2rem;
     font-weight: 800;
     margin: 0.1rem 0 0;
 }
@@ -247,7 +249,7 @@ a:hover {
 .live-badge,
 .status-chip {
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     font-weight: 800;
     padding: 0.35rem 0.7rem;
 }
@@ -259,21 +261,21 @@ a:hover {
 
 .schedule-grid {
     display: grid;
-    gap: 1rem;
-    grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1.2fr);
-    margin-top: 1.35rem;
+    gap: 0.85rem;
+    grid-template-columns: minmax(142px, 0.82fr) minmax(0, 1.28fr);
+    margin-top: 1.1rem;
 }
 
 .room-stack {
     display: grid;
-    gap: 0.65rem;
+    gap: 0.55rem;
 }
 
 .room-pill {
     background: var(--surface-subtle);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: 0.68rem 0.72rem;
 }
 
 .room-pill.active {
@@ -283,15 +285,20 @@ a:hover {
 
 .room-pill span,
 .review-strip strong,
-.admin-item strong,
 .strip-item strong {
     color: var(--ink);
     display: block;
     font-weight: 800;
 }
 
+.room-pill span,
+.strip-item strong {
+    font-size: 0.92rem;
+}
+
 .room-pill small {
     color: var(--muted);
+    font-size: 0.78rem;
     font-weight: 700;
 }
 
@@ -300,16 +307,16 @@ a:hover {
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
-    padding: 0.75rem;
+    padding: 0.65rem;
 }
 
 .time-labels {
     color: var(--muted);
     display: grid;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
     grid-template-columns: repeat(4, 1fr);
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.45rem;
 }
 
 .timeline-row {
@@ -318,20 +325,20 @@ a:hover {
     border-top: 1px solid var(--border);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    min-height: 54px;
-    padding: 0.55rem 0;
+    min-height: 46px;
+    padding: 0.48rem 0;
 }
 
 .timeline-block {
     align-items: center;
     border-radius: 8px;
     display: flex;
-    font-size: 0.82rem;
+    font-size: 0.74rem;
     font-weight: 800;
     grid-column: var(--start) / span var(--span);
     min-width: 0;
     overflow: hidden;
-    padding: 0 0.75rem;
+    padding: 0 0.65rem;
     white-space: nowrap;
 }
 
@@ -352,8 +359,8 @@ a:hover {
 
 .review-strip {
     border-top: 1px solid var(--border);
-    margin-top: 1rem;
-    padding-top: 1rem;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
 }
 
 .status-chip {
@@ -368,10 +375,10 @@ a:hover {
     border-radius: 8px;
     box-shadow: 0 16px 45px rgba(31, 42, 55, 0.08);
     display: flex;
-    gap: 0.75rem;
-    margin: -1.3rem 1.25rem 0 auto;
-    max-width: 340px;
-    padding: 0.9rem;
+    gap: 0.7rem;
+    margin: -1rem 1rem 0 auto;
+    max-width: 318px;
+    padding: 0.78rem 0.85rem;
     position: relative;
     z-index: 2;
 }
@@ -380,18 +387,19 @@ a:hover {
     background: var(--accent);
     border-radius: 999px;
     flex: 0 0 auto;
-    height: 42px;
+    height: 38px;
     width: 4px;
 }
 
 .floating-note strong {
     display: block;
+    font-size: 0.9rem;
     font-weight: 800;
 }
 
 .floating-note p {
     color: var(--muted);
-    font-size: 0.88rem;
+    font-size: 0.8rem;
     line-height: 1.45;
     margin: 0.15rem 0 0;
 }
@@ -403,7 +411,7 @@ a:hover {
     display: grid;
     gap: 1px;
     grid-template-columns: repeat(3, 1fr);
-    margin-top: 3.2rem;
+    margin-top: 2.6rem;
     overflow: hidden;
 }
 
@@ -411,8 +419,8 @@ a:hover {
     align-items: center;
     background: rgba(255, 255, 255, 0.86);
     display: flex;
-    gap: 0.9rem;
-    padding: 1rem;
+    gap: 0.78rem;
+    padding: 0.9rem;
 }
 
 .strip-code {
@@ -420,42 +428,37 @@ a:hover {
     border-radius: 8px;
     color: #ffffff;
     flex: 0 0 auto;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
     padding: 0.48rem 0.55rem;
 }
 
 .strip-item p {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     font-weight: 600;
     margin: 0.1rem 0 0;
 }
 
 .section-block {
-    padding: 2.3rem 0 4.5rem;
-}
-
-.section-tight {
-    padding-top: 0;
+    padding: 2rem 0 3.5rem;
 }
 
 .workflow-band {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 1.35rem;
+    padding: 1.2rem;
 }
 
 .section-heading {
-    margin-bottom: 1.35rem;
-    max-width: 780px;
+    margin-bottom: 1.15rem;
+    max-width: 690px;
 }
 
-.section-heading h2,
-.section-title {
-    font-size: clamp(1.9rem, 3vw, 3rem);
-    line-height: 1.04;
+.section-heading h2 {
+    font-size: clamp(1.55rem, 2.4vw, 2.35rem);
+    line-height: 1.18;
 }
 
 .feature-card {
@@ -463,7 +466,7 @@ a:hover {
     border: 1px solid var(--border);
     border-radius: 8px;
     height: 100%;
-    padding: 1.25rem;
+    padding: 1.05rem;
     transition: border-color 160ms ease, transform 160ms ease;
 }
 
@@ -475,21 +478,21 @@ a:hover {
 .feature-icon {
     color: var(--brand-dark);
     display: inline-block;
-    font-family: "Fraunces", serif;
-    font-size: 1.8rem;
+    font-size: 1.35rem;
     font-weight: 800;
     line-height: 1;
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
 }
 
 .feature-card h3 {
-    font-size: 1.16rem;
+    font-size: 1rem;
     font-weight: 800;
     margin-bottom: 0.55rem;
 }
 
 .feature-card p {
     color: var(--muted);
+    font-size: 0.9rem;
     line-height: 1.62;
     margin: 0;
 }
@@ -499,39 +502,17 @@ a:hover {
     display: flex;
     flex-wrap: wrap;
     gap: 0.6rem;
-    margin-top: 1.3rem;
-    padding-top: 1rem;
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
 }
 
 .system-note span {
     background: var(--brand-soft);
     border-radius: 999px;
     color: var(--brand-dark);
-    font-size: 0.85rem;
-    font-weight: 800;
-    padding: 0.4rem 0.75rem;
-}
-
-.admin-grid {
-    display: grid;
-    gap: 0.75rem;
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.admin-item {
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1rem;
-}
-
-.admin-item span {
-    color: var(--brand-dark);
-    display: block;
     font-size: 0.78rem;
     font-weight: 800;
-    margin-bottom: 0.25rem;
-    text-transform: uppercase;
+    padding: 0.4rem 0.75rem;
 }
 
 .app-footer {
@@ -564,11 +545,13 @@ a:hover {
 
 @media (max-width: 991.98px) {
     .hero-section {
-        padding-top: 4rem;
+        padding-top: 3.7rem;
     }
 
     .schedule-visual {
+        margin-left: 0;
         margin-top: 1rem;
+        max-width: none;
     }
 
     .campus-strip {
@@ -582,11 +565,17 @@ a:hover {
     }
 
     .hero-section {
-        padding: 3.2rem 0 2rem;
+        padding: 2.8rem 0 1.75rem;
     }
 
     .hero-title {
-        font-size: 2.55rem;
+        font-size: 2rem;
+        line-height: 1.16;
+    }
+
+    .hero-copy {
+        font-size: 0.94rem;
+        line-height: 1.72;
     }
 
     .hero-actions .btn {
@@ -594,13 +583,34 @@ a:hover {
     }
 
     .hero-metrics {
-        gap: 1rem;
-        justify-content: space-between;
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 1.35rem;
     }
 
-    .schedule-grid,
-    .admin-grid {
+    .hero-metrics strong {
+        font-size: 1.1rem;
+    }
+
+    .hero-metrics span {
+        font-size: 0.7rem;
+    }
+
+    .schedule-grid {
         grid-template-columns: 1fr;
+    }
+
+    .schedule-visual::after {
+        display: none;
+    }
+
+    .visual-topline {
+        align-items: flex-start;
+    }
+
+    .visual-topline h2 {
+        font-size: 1.05rem;
     }
 
     .floating-note {
@@ -615,6 +625,10 @@ a:hover {
 
     .workflow-band {
         padding: 1rem;
+    }
+
+    .section-heading h2 {
+        font-size: 1.38rem;
     }
 
     .app-footer .container {
