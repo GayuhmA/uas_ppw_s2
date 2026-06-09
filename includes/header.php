@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/auth.php';
 
 if (!isset($pageTitle)) {
     $pageTitle = 'Sistem Reservasi Ruangan';
@@ -18,6 +19,7 @@ if (!isset($pageTitle)) {
     <link rel="stylesheet" href="<?= asset('assets/css/style.css'); ?>">
 </head>
 <body>
+    <?php if (empty($hideNavbar)): ?>
     <nav class="navbar navbar-expand-lg app-navbar">
         <div class="container">
             <a class="navbar-brand" href="<?= url('index.php'); ?>">
@@ -32,16 +34,41 @@ if (!isset($pageTitle)) {
 
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link <?= active_nav('index.php'); ?>" href="<?= url('index.php'); ?>">Beranda</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= active_nav('pages/rooms.php'); ?>" href="<?= url('pages/rooms.php'); ?>">Ruangan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= active_nav('login.php'); ?>" href="<?= url('login.php'); ?>">Login</a>
-                    </li>
+                    <?php if (!is_logged_in()): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= active_nav('index.php'); ?>" href="<?= url('index.php'); ?>">Beranda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= active_nav('pages/rooms.php'); ?>" href="<?= url('pages/rooms.php'); ?>">Ruangan</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= active_nav('login.php'); ?>" href="<?= url('login.php'); ?>">Login</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= active_nav('pages/dashboard.php'); ?>" href="<?= url('pages/dashboard.php'); ?>">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= active_nav('pages/rooms.php'); ?>" href="<?= url('pages/rooms.php'); ?>">Ruangan</a>
+                        </li>
+                        <?php if (is_admin()): ?>
+                            <li class="nav-item">
+                                <a class="nav-link <?= active_nav('pages/reservations.php'); ?>" href="<?= url('pages/reservations.php'); ?>">Reservasi</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link <?= active_nav('pages/facilities.php'); ?>" href="<?= url('pages/facilities.php'); ?>">Fasilitas</a>
+                            </li>
+                        <?php else: ?>
+                            <li class="nav-item">
+                                <a class="nav-link <?= active_nav('pages/reservations.php'); ?>" href="<?= url('pages/reservations.php'); ?>">Reservasi Saya</a>
+                            </li>
+                        <?php endif; ?>
+                        <li class="nav-item ms-lg-3">
+                            <a class="nav-link text-danger" href="<?= url('logout.php'); ?>">Logout</a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
     </nav>
+    <?php endif; ?>
