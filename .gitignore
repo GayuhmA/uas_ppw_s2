@@ -1,0 +1,47 @@
+# Local environment and credentials
+includes/config.php
+.env
+.env.*
+*.log
+
+# Dependencies and generated folders
+vendor/
+node_modules/
+dist/
+build/
+
+# Runtime uploads and temporary files
+assets/img/uploads/*
+!assets/img/uploads/.gitkeep
+tmp/
+temp/
+cache/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local assistant/tooling notes
+.agents/
+.codex/
+.claude/
+.cursor/
+.continue/
+.windsurf/
+skills-lock.json
+TECH_SPEC.md
+DEVELOPMENT_CHECKLIST.md
+
+# Local planning/export drafts
+notes/
+drafts/
+*.bak
+*.tmp
+
+# Keep submitted source and documentation visible
+!README.md
+!database.sql
