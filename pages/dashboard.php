@@ -4,21 +4,457 @@ require_once __DIR__ . '/../includes/auth.php';
 
 require_login();
 
-$pageTitle = 'Dashboard';
-require_once __DIR__ . '/../includes/header.php';
 $user = current_user();
+$isAdmin = is_admin();
+
+function dashboard_bind_params($stmt, $types, $params)
+{
+    if ($types === '' || empty($params)) {
+        return;
+    }
+
+    $refs = [];
+    foreach ($params as $key => $value) {
+        $refs[$key] = &$params[$key];
+    }
+
+    mysqli_stmt_bind_param($stmt, $types, ...$refs);
+}
+
+function dashboard_count($conn, $sql, $types = '', $params = [])
+{
+    $stmt = mysqli_prepare($conn, $sql);
+    dashboard_bind_params($stmt, $types, $params);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $row = mysqli_fetch_assoc($result);
+
+    return (int) ($row['total'] ?? 0);
+}
+
+function dashboard_rows($conn, $sql, $types = '', $params = [])
+{
+    $stmt = mysqli_prepare($conn, $sql);
+    dashboard_bind_params($stmt, $types, $params);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+
+    return mysqli_fetch_all($result, MYSQLI_ASSOC);
+}
+
+function dashboard_status_label($status)
+{
+    $labels = [
+        'pending' => 'Menunggu',
+        'approved' => 'Disetujui',
+        'rejected' => 'Ditolak',
+        'cancelled' => 'Dibatalkan',
+        'completed' => 'Selesai',
+    ];
+
+    return $labels[$status] ?? ucfirst((string) $status);
+}
+
+function dashboard_date($date)
+{
+    return date('d M Y', strtotime($date));
+}
+
+function dashboard_short_date($date)
+{
+    return date('d M', strtotime($date));
+}
+
+function dashboard_initials($name)
+{
+    $words = preg_split('/\s+/', trim((string) $name));
+    $initials = '';
+
+    foreach ($words as $word) {
+        if ($word === '') {
+            continue;
+        }
+
+        $initials .= strtoupper(substr($word, 0, 1));
+
+        if (strlen($initials) >= 2) {
+            break;
+        }
+    }
+
+    return $initials !== '' ? $initials : 'R';
+}
+
+function dashboard_stat_icon($name)
+{
+    $icons = [
+        'rooms' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v16"></path><path d="M16 9h3c.6 0 1 .4 1 1v11"></path><path d="M3 21h18"></path><path d="M8 8h3"></path><path d="M8 12h3"></path><path d="M8 16h3"></path></svg>',
+        'pending' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>',
+        'today' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3"></path><path d="M17 3v3"></path><path d="M4 8h16"></path><path d="M5 5h14c.6 0 1 .4 1 1v14c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1V6c0-.6.4-1 1-1z"></path><path d="m9 15 2 2 4-5"></path></svg>',
+        'total' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8"></path><path d="M9 2h6c.6 0 1 .4 1 1v2H8V3c0-.6.4-1 1-1z"></path><path d="M6 5h12c.6 0 1 .4 1 1v15H5V6c0-.6.4-1 1-1z"></path><path d="M8 11h8"></path><path d="M8 15h8"></path></svg>',
+    ];
+
+    return $icons[$name] ?? '';
+}
+
+$totalRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM rooms");
+$availableRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM rooms WHERE status = 'available'");
+$maintenanceRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM rooms WHERE status <> 'available'");
+$facilityCount = dashboard_count($conn, "SELECT COUNT(*) AS total FROM facilities");
+$availabilityRate = $totalRooms > 0 ? round(($availableRooms / $totalRooms) * 100) : 0;
+
+if ($isAdmin) {
+    $pendingReservations = dashboard_count($conn, "SELECT COUNT(*) AS total FROM reservations WHERE status = 'pending'");
+    $todayReservations = dashboard_count($conn, "SELECT COUNT(*) AS total FROM reservations WHERE reservation_date = CURDATE()");
+    $totalReservations = dashboard_count($conn, "SELECT COUNT(*) AS total FROM reservations");
+    $approvedReservations = dashboard_count($conn, "SELECT COUNT(*) AS total FROM reservations WHERE status = 'approved'");
+    $completedReservations = dashboard_count($conn, "SELECT COUNT(*) AS total FROM reservations WHERE status = 'completed'");
+    $rejectedReservations = dashboard_count($conn, "SELECT COUNT(*) AS total FROM reservations WHERE status IN ('rejected', 'cancelled')");
+    $chartRows = dashboard_rows(
+        $conn,
+        "SELECT reservation_date, COUNT(*) AS total
+         FROM reservations
+         WHERE reservation_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 6 DAY)
+         GROUP BY reservation_date"
+    );
+    $recentReservations = dashboard_rows(
+        $conn,
+        "SELECT reservations.id, reservations.reservation_date, reservations.start_time, reservations.end_time,
+                reservations.purpose, reservations.status, rooms.room_name, users.name AS user_name
+         FROM reservations
+         INNER JOIN rooms ON rooms.id = reservations.room_id
+         INNER JOIN users ON users.id = reservations.user_id
+         ORDER BY reservations.created_at DESC, reservations.id DESC
+         LIMIT 6"
+    );
+    $dashboardSubtitle = 'Pantau pengajuan ruangan, jadwal harian, dan kesiapan ruang dari satu tempat.';
+    $reservationLabel = 'Pengajuan terbaru';
+    $heroActionLabel = 'Tinjau Reservasi';
+} else {
+    $pendingReservations = dashboard_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM reservations WHERE user_id = ? AND status = 'pending'",
+        'i',
+        [$user['id']]
+    );
+    $todayReservations = dashboard_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM reservations WHERE user_id = ? AND status = 'approved' AND reservation_date >= CURDATE()",
+        'i',
+        [$user['id']]
+    );
+    $totalReservations = dashboard_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM reservations WHERE user_id = ?",
+        'i',
+        [$user['id']]
+    );
+    $approvedReservations = dashboard_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM reservations WHERE user_id = ? AND status = 'approved'",
+        'i',
+        [$user['id']]
+    );
+    $completedReservations = dashboard_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM reservations WHERE user_id = ? AND status = 'completed'",
+        'i',
+        [$user['id']]
+    );
+    $rejectedReservations = dashboard_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM reservations WHERE user_id = ? AND status IN ('rejected', 'cancelled')",
+        'i',
+        [$user['id']]
+    );
+    $chartRows = dashboard_rows(
+        $conn,
+        "SELECT reservation_date, COUNT(*) AS total
+         FROM reservations
+         WHERE user_id = ? AND reservation_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 6 DAY)
+         GROUP BY reservation_date",
+        'i',
+        [$user['id']]
+    );
+    $recentReservations = dashboard_rows(
+        $conn,
+        "SELECT reservations.id, reservations.reservation_date, reservations.start_time, reservations.end_time,
+                reservations.purpose, reservations.status, rooms.room_name, users.name AS user_name
+         FROM reservations
+         INNER JOIN rooms ON rooms.id = reservations.room_id
+         INNER JOIN users ON users.id = reservations.user_id
+         WHERE reservations.user_id = ?
+         ORDER BY reservations.created_at DESC, reservations.id DESC
+         LIMIT 6",
+        'i',
+        [$user['id']]
+    );
+    $dashboardSubtitle = 'Lihat status pengajuan, jadwal mendatang, dan ruang yang masih tersedia.';
+    $reservationLabel = 'Reservasi saya';
+    $heroActionLabel = 'Ajukan Reservasi';
+}
+
+$chartCounts = [];
+foreach ($chartRows as $row) {
+    $chartCounts[$row['reservation_date']] = (int) $row['total'];
+}
+
+$recentStatusCounts = [
+    'all' => count($recentReservations),
+    'pending' => 0,
+    'approved' => 0,
+    'completed' => 0,
+    'rejected' => 0,
+];
+
+foreach ($recentReservations as $reservation) {
+    if ($reservation['status'] === 'cancelled') {
+        $recentStatusCounts['rejected'] += 1;
+        continue;
+    }
+
+    if (isset($recentStatusCounts[$reservation['status']])) {
+        $recentStatusCounts[$reservation['status']] += 1;
+    }
+}
+
+$chartDays = [];
+$maxDayReservations = 1;
+for ($i = 0; $i < 7; $i++) {
+    $date = date('Y-m-d', strtotime('+' . $i . ' day'));
+    $count = $chartCounts[$date] ?? 0;
+    $maxDayReservations = max($maxDayReservations, $count);
+    $chartDays[] = [
+        'date' => $date,
+        'label' => $i === 0 ? 'Hari ini' : dashboard_short_date($date),
+        'count' => $count,
+    ];
+}
+
+$statusTabs = [
+    [
+        'label' => 'Semua',
+        'count' => $recentStatusCounts['all'],
+        'statuses' => '',
+    ],
+    [
+        'label' => 'Menunggu',
+        'count' => $recentStatusCounts['pending'],
+        'statuses' => 'pending',
+    ],
+    [
+        'label' => 'Disetujui',
+        'count' => $recentStatusCounts['approved'],
+        'statuses' => 'approved',
+    ],
+    [
+        'label' => 'Selesai',
+        'count' => $recentStatusCounts['completed'],
+        'statuses' => 'completed',
+    ],
+    [
+        'label' => 'Ditolak',
+        'count' => $recentStatusCounts['rejected'],
+        'statuses' => 'rejected,cancelled',
+    ],
+];
+
+$statCards = [
+    [
+        'label' => 'Ruangan tersedia',
+        'value' => $availableRooms,
+        'hint' => $availabilityRate . '% dari ' . $totalRooms . ' ruangan siap dipakai',
+        'tone' => 'primary',
+        'icon' => 'rooms',
+    ],
+    [
+        'label' => 'Menunggu konfirmasi',
+        'value' => $pendingReservations,
+        'hint' => $isAdmin ? 'perlu ditinjau admin' : 'sedang diproses',
+        'tone' => 'warning',
+        'icon' => 'pending',
+    ],
+    [
+        'label' => $isAdmin ? 'Reservasi hari ini' : 'Jadwal disetujui',
+        'value' => $todayReservations,
+        'hint' => $isAdmin ? 'aktif di tanggal ini' : 'jadwal mendatang',
+        'tone' => 'success',
+        'icon' => 'today',
+    ],
+    [
+        'label' => 'Total reservasi',
+        'value' => $totalReservations,
+        'hint' => $isAdmin ? 'seluruh pengajuan tercatat' : 'riwayat pengajuan kamu',
+        'tone' => 'neutral',
+        'icon' => 'total',
+    ],
+];
+
+$pageTitle = 'Dashboard';
+$bodyClass = 'dashboard-body';
+$hideFooter = true;
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<main class="page-wrapper py-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">Selamat datang, <?= e($user['name']) ?>!</h1>
-        </div>
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <p class="text-muted mb-0">Ini adalah halaman dashboard awal untuk melihat aktivitas dan reservasi Anda.</p>
+<main class="dashboard-page">
+    <div class="dashboard-shell">
+        <header class="dashboard-topbar">
+            <div>
+                <span class="dashboard-crumb">Halaman / <strong>Dashboard</strong></span>
+                <h1>Dashboard Reservasi</h1>
             </div>
+            <div class="dashboard-topbar-actions">
+                <span class="topbar-chip"><?= date('d M Y'); ?></span>
+            </div>
+        </header>
+
+        <section class="dashboard-hero-card">
+            <div>
+                <span><?= $isAdmin ? 'Dashboard Admin' : 'Dashboard Pengguna'; ?></span>
+                <h2>Selamat datang, <?= e($user['name']) ?>.</h2>
+                <p><?= e($dashboardSubtitle) ?></p>
+            </div>
+            <a href="<?= url('pages/reservations.php') ?>" class="btn btn-light dashboard-hero-action"><?= e($heroActionLabel); ?></a>
+        </section>
+
+        <div class="dashboard-stats">
+            <?php foreach ($statCards as $card): ?>
+                <article class="dashboard-stat <?= e('stat-' . $card['tone']) ?>">
+                    <div class="stat-icon"><?= dashboard_stat_icon($card['icon']); ?></div>
+                    <span><?= e($card['label']) ?></span>
+                    <strong><?= e($card['value']) ?></strong>
+                    <p><?= e($card['hint']) ?></p>
+                </article>
+            <?php endforeach; ?>
         </div>
+
+        <div class="dashboard-analytics">
+            <section class="dashboard-panel schedule-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">Agenda</span>
+                        <h2>Aktivitas 7 hari</h2>
+                    </div>
+                    <span class="range-pill"><?= e(dashboard_short_date(date('Y-m-d'))); ?> - <?= e(dashboard_short_date(date('Y-m-d', strtotime('+6 day')))); ?></span>
+                </div>
+                <div class="reservation-bars" aria-label="Jumlah reservasi 7 hari ke depan">
+                    <?php foreach ($chartDays as $day): ?>
+                        <?php
+                            $barSize = $day['count'] > 0 ? max(14, round(($day['count'] / $maxDayReservations) * 100)) : 6;
+                        ?>
+                        <div class="reservation-bar-item">
+                            <div class="bar-track">
+                                <span style="--bar-size: <?= e($barSize); ?>%;"></span>
+                            </div>
+                            <strong><?= e($day['count']); ?></strong>
+                            <small><?= e($day['label']); ?></small>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+
+            <section class="dashboard-panel insight-panel">
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">Kesiapan</span>
+                        <h2>Ruang siap dipakai</h2>
+                    </div>
+                </div>
+                <div class="availability-meter" style="--meter: <?= e($availabilityRate); ?>%;">
+                    <strong><?= e($availabilityRate); ?>%</strong>
+                    <span><?= e($availableRooms); ?> dari <?= e($totalRooms); ?> ruangan</span>
+                </div>
+                <div class="insight-list">
+                    <div>
+                        <span>Perlu perhatian</span>
+                        <strong><?= e($maintenanceRooms); ?> ruang</strong>
+                    </div>
+                    <div>
+                        <span>Fasilitas tercatat</span>
+                        <strong><?= e($facilityCount); ?> item</strong>
+                    </div>
+                    <div>
+                        <span>Status disetujui</span>
+                        <strong><?= e($approvedReservations); ?> reservasi</strong>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="dashboard-panel reservations-panel">
+            <div class="panel-header panel-header-spread">
+                <div>
+                    <span class="panel-kicker">Reservasi</span>
+                    <h2><?= e($reservationLabel) ?></h2>
+                </div>
+                <a href="<?= url('pages/reservations.php') ?>" class="btn btn-outline-primary btn-sm">Lihat semua</a>
+            </div>
+
+            <div class="reservation-tabs" data-reservation-filters>
+                <?php foreach ($statusTabs as $index => $tab): ?>
+                    <button
+                        type="button"
+                        class="<?= $index === 0 ? 'active' : ''; ?>"
+                        data-status-filter="<?= e($tab['statuses']); ?>"
+                        aria-pressed="<?= $index === 0 ? 'true' : 'false'; ?>"
+                    >
+                        <?= e($tab['label']); ?> <strong><?= e($tab['count']); ?></strong>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+
+            <?php if (empty($recentReservations)): ?>
+                <div class="empty-state">
+                    <strong>Belum ada reservasi.</strong>
+                    <p>Data reservasi terbaru akan muncul di sini setelah pengajuan dibuat.</p>
+                </div>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table dashboard-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Ruangan</th>
+                                <?php if ($isAdmin): ?>
+                                    <th>Pemohon</th>
+                                <?php endif; ?>
+                                <th>Tanggal</th>
+                                <th>Waktu</th>
+                                <th>Tujuan</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recentReservations as $reservation): ?>
+                                <tr data-reservation-row data-status="<?= e($reservation['status']); ?>">
+                                    <td>
+                                        <strong><?= e($reservation['room_name']) ?></strong>
+                                    </td>
+                                    <?php if ($isAdmin): ?>
+                                        <td><?= e($reservation['user_name']) ?></td>
+                                    <?php endif; ?>
+                                    <td><?= e(dashboard_date($reservation['reservation_date'])) ?></td>
+                                    <td>
+                                        <?= e(substr($reservation['start_time'], 0, 5)) ?>
+                                        -
+                                        <?= e(substr($reservation['end_time'], 0, 5)) ?>
+                                    </td>
+                                    <td><?= e($reservation['purpose']) ?></td>
+                                    <td>
+                                        <span class="reservation-status status-<?= e($reservation['status']) ?>">
+                                            <?= e(dashboard_status_label($reservation['status'])) ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="empty-state filter-empty-state" data-filter-empty hidden>
+                    <strong>Data tidak ditemukan.</strong>
+                    <p>Tidak ada reservasi terbaru dengan status yang dipilih.</p>
+                </div>
+            <?php endif; ?>
+        </section>
     </div>
 </main>
 

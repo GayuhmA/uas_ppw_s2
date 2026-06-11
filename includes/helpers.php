@@ -20,6 +20,15 @@ function asset($path)
     return url($path);
 }
 
+function versioned_asset($path)
+{
+    $relativePath = ltrim($path, '/');
+    $filePath = dirname(__DIR__) . '/' . $relativePath;
+    $version = file_exists($filePath) ? filemtime($filePath) : time();
+
+    return asset($relativePath) . '?v=' . $version;
+}
+
 function active_nav($path)
 {
     $currentPath = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');

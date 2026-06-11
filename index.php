@@ -17,8 +17,7 @@ require_once __DIR__ . '/includes/header.php';
                     </p>
 
                     <div class="hero-actions">
-                        <a href="pages/rooms.php" class="btn btn-primary btn-lg">Lihat Ruangan</a>
-                        <a href="login.php" class="btn btn-outline-primary btn-lg">Masuk</a>
+                        <a href="login.php" class="btn btn-primary btn-lg">Masuk ke Sistem</a>
                     </div>
 
                     <div class="hero-metrics" aria-label="Ringkasan sistem">
