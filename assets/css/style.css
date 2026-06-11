@@ -131,9 +131,9 @@ a:hover {
 }
 
 .app-sidebar .brand-mark {
-    background: linear-gradient(135deg, var(--brand), var(--accent));
-    border-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 12px 30px rgba(42, 148, 219, 0.25);
+    background: var(--ink);
+    border-color: var(--ink);
+    box-shadow: 0 4px 12px rgba(31, 42, 55, 0.15);
 }
 
 .sidebar-menu {
@@ -201,7 +201,7 @@ a:hover {
 }
 
 .sidebar-link::before {
-    background: linear-gradient(180deg, var(--brand), var(--accent));
+    background: var(--brand);
     border-radius: 999px;
     content: "";
     height: 58%;
@@ -216,8 +216,8 @@ a:hover {
 
 .sidebar-link:hover,
 .sidebar-link.active {
-    background: linear-gradient(90deg, rgba(42, 148, 219, 0.12), rgba(20, 184, 166, 0.05));
-    box-shadow: 0 14px 30px rgba(42, 148, 219, 0.08);
+    background: var(--surface-subtle);
+    box-shadow: inset 0 0 0 1px var(--border), 0 2px 4px rgba(31, 42, 55, 0.02);
     color: var(--ink);
     transform: translateX(2px);
 }
@@ -257,9 +257,9 @@ a:hover {
 
 .sidebar-link:hover .sidebar-icon,
 .sidebar-link.active .sidebar-icon {
-    background: linear-gradient(135deg, var(--brand), var(--accent));
-    border-color: rgba(255, 255, 255, 0.75);
-    box-shadow: 0 10px 20px rgba(42, 148, 219, 0.2);
+    background: var(--brand);
+    border-color: var(--brand-dark);
+    box-shadow: 0 4px 12px rgba(42, 148, 219, 0.15);
     color: #ffffff;
     transform: scale(1.04);
 }
@@ -409,6 +409,11 @@ a:hover {
     font-size: 0.95rem;
     font-weight: 800;
     padding: 0.72rem 1.1rem;
+}
+
+.btn-sm {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.85rem;
 }
 
 .btn-primary {
@@ -811,7 +816,7 @@ a:hover {
 
 .dashboard-topbar h1 {
     color: var(--ink);
-    font-size: 1.15rem;
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
     font-weight: 800;
     letter-spacing: 0;
     margin: 0;
@@ -1236,7 +1241,8 @@ a:hover {
     display: flex;
     gap: 0.35rem;
     overflow-x: auto;
-    padding: 0 1rem 0.82rem;
+    padding: 0 1rem;
+    margin-bottom: 0.82rem;
 }
 
 .reservation-tabs button {
@@ -1252,6 +1258,7 @@ a:hover {
     font-size: 0.78rem;
     font-weight: 800;
     padding: 0.28rem 0.5rem 0.48rem;
+    margin-bottom: -1px;
 }
 
 .reservation-tabs button:hover,
@@ -1281,7 +1288,7 @@ a:hover {
 }
 
 .dashboard-table {
-    margin: 0;
+    margin-bottom: 1rem;
 }
 
 .dashboard-table thead th {
