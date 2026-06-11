@@ -129,6 +129,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!field.value.trim()) {
                     showFieldError(field, field.dataset.message || 'Field ini wajib diisi.');
                     isValid = false;
+                    return;
+                }
+
+                const minLength = Number(field.dataset.minLength || 0);
+                if (minLength > 0 && field.value.trim().length < minLength) {
+                    showFieldError(field, field.dataset.minMessage || 'Isi field masih terlalu pendek.');
+                    isValid = false;
+                }
+            });
+
+            const timeFields = form.querySelectorAll('[data-after-field]');
+            timeFields.forEach(function (field) {
+                const beforeField = form.querySelector('[name="' + field.dataset.afterField + '"]');
+
+                if (!beforeField || !beforeField.value || !field.value) {
+                    return;
+                }
+
+                if (field.value <= beforeField.value) {
+                    showFieldError(field, field.dataset.afterMessage || 'Waktu selesai harus setelah waktu mulai.');
+                    isValid = false;
                 }
             });
 
