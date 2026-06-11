@@ -80,6 +80,41 @@ function initializeReservationFilters() {
     });
 }
 
+function initializeToasts() {
+    const toasts = document.querySelectorAll('[data-toast]');
+
+    toasts.forEach(function (toast) {
+        const closeButton = toast.querySelector('[data-toast-close]');
+
+        function closeToast() {
+            toast.classList.add('is-hiding');
+
+            window.setTimeout(function () {
+                toast.remove();
+            }, 220);
+        }
+
+        if (closeButton) {
+            closeButton.addEventListener('click', closeToast);
+        }
+
+        window.setTimeout(closeToast, 3600);
+    });
+}
+
+function clearFlashParams() {
+    const url = new URL(window.location.href);
+    const hasFlashParams = url.searchParams.has('message') || url.searchParams.has('error');
+
+    if (!hasFlashParams) {
+        return;
+    }
+
+    url.searchParams.delete('message');
+    url.searchParams.delete('error');
+    window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const validatedForms = document.querySelectorAll('[data-validate]');
 
@@ -116,4 +151,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     initializeReservationFilters();
+    initializeToasts();
+    clearFlashParams();
 });

@@ -76,12 +76,24 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </header>
 
-        <?php if (isset($messages[$message])): ?>
-            <div class="app-alert alert-success-lite"><?= e($messages[$message]); ?></div>
-        <?php endif; ?>
+        <?php if (isset($messages[$message]) || isset($errors[$error])): ?>
+            <div class="toast-stack" aria-live="polite" aria-atomic="true">
+                <?php if (isset($messages[$message])): ?>
+                    <div class="app-toast toast-success" data-toast>
+                        <span class="toast-icon"></span>
+                        <p><?= e($messages[$message]); ?></p>
+                        <button type="button" aria-label="Tutup notifikasi" data-toast-close>&times;</button>
+                    </div>
+                <?php endif; ?>
 
-        <?php if (isset($errors[$error])): ?>
-            <div class="app-alert alert-danger-lite"><?= e($errors[$error]); ?></div>
+                <?php if (isset($errors[$error])): ?>
+                    <div class="app-toast toast-danger" data-toast>
+                        <span class="toast-icon"></span>
+                        <p><?= e($errors[$error]); ?></p>
+                        <button type="button" aria-label="Tutup notifikasi" data-toast-close>&times;</button>
+                    </div>
+                <?php endif; ?>
+            </div>
         <?php endif; ?>
 
         <section class="room-summary-grid" aria-label="Ringkasan ruangan">
