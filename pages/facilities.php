@@ -63,6 +63,12 @@ $facilities = fetch_all_rows(
      GROUP BY facilities.id, facilities.facility_name
      ORDER BY facilities.facility_name ASC"
 );
+$totalFacilities = count($facilities);
+$linkedRoomTotal = 0;
+
+foreach ($facilities as $facility) {
+    $linkedRoomTotal += (int) $facility['room_total'];
+}
 
 $messages = [
     'created' => 'Fasilitas berhasil ditambahkan.',
@@ -82,11 +88,11 @@ require_once __DIR__ . '/../includes/header.php';
 
 <main class="dashboard-page">
     <div class="dashboard-shell">
-        <header class="content-topbar">
+        <header class="content-topbar facility-topbar">
             <div>
                 <span class="dashboard-crumb">Halaman / <strong>Fasilitas</strong></span>
                 <h1>Kelola Fasilitas</h1>
-                <p>Tambahkan fasilitas yang dapat dipilih saat mengelola data ruangan.</p>
+                <p>Atur fasilitas yang akan muncul pada data ruangan dan form reservasi.</p>
             </div>
             <a href="<?= url('pages/rooms.php'); ?>" class="btn btn-outline-primary">Lihat Ruangan</a>
         </header>
@@ -112,11 +118,12 @@ require_once __DIR__ . '/../includes/header.php';
         <?php endif; ?>
 
         <section class="facility-layout">
-            <article class="dashboard-panel form-panel">
+            <article class="dashboard-panel facility-form-panel">
                 <div class="panel-header">
                     <div>
-                        <span class="panel-kicker">Fasilitas</span>
+                        <span class="panel-kicker">Input</span>
                         <h2>Tambah fasilitas</h2>
+                        <p class="panel-subtitle">Nama yang dibuat di sini langsung tersedia di form tambah dan edit ruangan.</p>
                     </div>
                 </div>
                 <form method="post" data-validate class="facility-create-form">
@@ -129,6 +136,7 @@ require_once __DIR__ . '/../includes/header.php';
                             name="facility_name"
                             class="form-control <?= $formError !== '' ? 'is-invalid-lite' : ''; ?>"
                             value="<?= e($facilityName); ?>"
+                            placeholder="Contoh: Proyektor, AC, Wi-Fi"
                             data-required
                             data-message="Nama fasilitas wajib diisi."
                         >
@@ -140,34 +148,68 @@ require_once __DIR__ . '/../includes/header.php';
                 </form>
             </article>
 
-            <section class="dashboard-panel">
+            <section class="dashboard-panel facility-list-panel">
                 <div class="panel-header">
                     <div>
                         <span class="panel-kicker">Daftar</span>
                         <h2>Fasilitas tersedia</h2>
+                        <p class="panel-subtitle">Pantau fasilitas mana yang sudah dipakai ruangan dan rapikan data yang belum relevan.</p>
                     </div>
-                    <span class="range-pill"><?= e(count($facilities)); ?> fasilitas</span>
+                    <span class="range-pill"><?= e($totalFacilities); ?> fasilitas</span>
                 </div>
 
                 <?php if (empty($facilities)): ?>
-                    <div class="empty-state">
+                    <div class="empty-state facility-empty-state">
                         <strong>Belum ada fasilitas.</strong>
                         <p>Tambahkan fasilitas agar dapat dipakai pada form ruangan.</p>
                     </div>
                 <?php else: ?>
-                    <div class="facility-table-list">
+                    <div class="facility-card-grid">
                         <?php foreach ($facilities as $facility): ?>
-                            <div class="facility-row">
-                                <div>
-                                    <strong><?= e($facility['facility_name']); ?></strong>
-                                    <span><?= e($facility['room_total']); ?> ruangan memakai fasilitas ini</span>
+                            <?php
+                                $roomTotal = (int) $facility['room_total'];
+                                $usagePercent = $linkedRoomTotal > 0 ? min(100, max(8, (int) round(($roomTotal / max(1, $linkedRoomTotal)) * 100))) : 8;
+                            ?>
+                            <article class="facility-card">
+                                <div class="facility-card-main">
+                                    <span class="facility-card-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M4 21v-7"></path>
+                                            <path d="M4 10V3"></path>
+                                            <path d="M12 21v-9"></path>
+                                            <path d="M12 8V3"></path>
+                                            <path d="M20 21v-5"></path>
+                                            <path d="M20 12V3"></path>
+                                            <path d="M2 14h4"></path>
+                                            <path d="M10 8h4"></path>
+                                            <path d="M18 16h4"></path>
+                                        </svg>
+                                    </span>
+                                    <div>
+                                        <span class="facility-card-label"><?= $roomTotal > 0 ? 'Terpakai' : 'Belum dipakai'; ?></span>
+                                        <h3><?= e($facility['facility_name']); ?></h3>
+                                    </div>
                                 </div>
-                                <form method="post">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="id" value="<?= e($facility['id']); ?>">
-                                    <button type="submit" class="btn btn-danger-lite btn-sm" data-confirm="Hapus fasilitas ini?">Hapus</button>
-                                </form>
-                            </div>
+
+                                <div class="facility-usage">
+                                    <div>
+                                        <span>Pemakaian</span>
+                                        <strong><?= e($roomTotal); ?> ruangan</strong>
+                                    </div>
+                                    <span class="facility-usage-track" aria-hidden="true">
+                                        <span style="width: <?= e($usagePercent); ?>%;"></span>
+                                    </span>
+                                </div>
+
+                                <div class="facility-card-footer">
+                                    <span><?= $roomTotal > 0 ? 'Aktif pada data ruangan' : 'Belum terhubung'; ?></span>
+                                    <form method="post">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="<?= e($facility['id']); ?>">
+                                        <button type="submit" class="facility-delete-btn" data-confirm="Hapus fasilitas ini?">Hapus</button>
+                                    </form>
+                                </div>
+                            </article>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
