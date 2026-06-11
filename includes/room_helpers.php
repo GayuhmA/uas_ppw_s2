@@ -74,6 +74,102 @@ function reservation_status_label($status)
     return $labels[$status] ?? ucfirst((string) $status);
 }
 
+function fetch_facilities($conn)
+{
+    return fetch_all_rows(
+        $conn,
+        "SELECT id, facility_name
+         FROM facilities
+         ORDER BY facility_name ASC"
+    );
+}
+
+function clean_facility_ids($facilityIds)
+{
+    if (!is_array($facilityIds)) {
+        return [];
+    }
+
+    $cleanIds = [];
+    foreach ($facilityIds as $facilityId) {
+        $id = (int) $facilityId;
+
+        if ($id > 0) {
+            $cleanIds[$id] = $id;
+        }
+    }
+
+    return array_values($cleanIds);
+}
+
+function validate_facility_ids($conn, $facilityIds)
+{
+    if (empty($facilityIds)) {
+        return true;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($facilityIds), '?'));
+    $types = str_repeat('i', count($facilityIds));
+    $count = fetch_count(
+        $conn,
+        "SELECT COUNT(*) AS total FROM facilities WHERE id IN ($placeholders)",
+        $types,
+        $facilityIds
+    );
+
+    return $count === count($facilityIds);
+}
+
+function sync_room_facilities($conn, $roomId, $facilityIds)
+{
+    $deleteStmt = mysqli_prepare($conn, "DELETE FROM room_facilities WHERE room_id = ?");
+    mysqli_stmt_bind_param($deleteStmt, 'i', $roomId);
+    mysqli_stmt_execute($deleteStmt);
+
+    if (empty($facilityIds)) {
+        return;
+    }
+
+    $insertStmt = mysqli_prepare(
+        $conn,
+        "INSERT INTO room_facilities (room_id, facility_id) VALUES (?, ?)"
+    );
+
+    foreach ($facilityIds as $facilityId) {
+        mysqli_stmt_bind_param($insertStmt, 'ii', $roomId, $facilityId);
+        mysqli_stmt_execute($insertStmt);
+    }
+}
+
+function fetch_room_facility_map($conn, $roomIds)
+{
+    $roomIds = clean_facility_ids($roomIds);
+
+    if (empty($roomIds)) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($roomIds), '?'));
+    $types = str_repeat('i', count($roomIds));
+    $rows = fetch_all_rows(
+        $conn,
+        "SELECT room_facilities.room_id, facilities.facility_name
+         FROM room_facilities
+         INNER JOIN facilities ON facilities.id = room_facilities.facility_id
+         WHERE room_facilities.room_id IN ($placeholders)
+         ORDER BY facilities.facility_name ASC",
+        $types,
+        $roomIds
+    );
+    $facilityMap = [];
+
+    foreach ($rows as $row) {
+        $facilityMap[(int) $row['room_id']][] = $row['facility_name'];
+    }
+
+    return $facilityMap;
+}
+
 function clean_room_input($data)
 {
     return [

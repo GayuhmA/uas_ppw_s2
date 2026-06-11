@@ -41,6 +41,8 @@ $rooms = fetch_all_rows(
     $types . 'ii',
     array_merge($params, [$perPage, $offset])
 );
+$roomIds = array_column($rooms, 'id');
+$roomFacilityMap = fetch_room_facility_map($conn, $roomIds);
 
 $availableRooms = fetch_count($conn, "SELECT COUNT(*) AS total FROM rooms WHERE status = 'available'");
 $maintenanceRooms = fetch_count($conn, "SELECT COUNT(*) AS total FROM rooms WHERE status <> 'available'");
@@ -151,6 +153,15 @@ require_once __DIR__ . '/../includes/header.php';
                             <p class="room-description">
                                 <?= e($room['description'] ?: 'Deskripsi ruangan belum tersedia.'); ?>
                             </p>
+                            <div class="room-facility-list">
+                                <?php if (empty($roomFacilityMap[$room['id']])): ?>
+                                    <span>Fasilitas belum dicatat</span>
+                                <?php else: ?>
+                                    <?php foreach (array_slice($roomFacilityMap[$room['id']], 0, 4) as $facilityName): ?>
+                                        <span><?= e($facilityName); ?></span>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
                             <div class="room-card-actions">
                                 <a href="<?= url('pages/room-detail.php?id=' . $room['id']); ?>" class="btn btn-outline-primary btn-sm">Detail</a>
                                 <?php if ($isAdmin): ?>

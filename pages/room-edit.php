@@ -31,13 +31,28 @@ $form = [
     'status' => $room['status'],
     'description' => $room['description'] ?? '',
 ];
+$facilities = fetch_facilities($conn);
+$selectedFacilities = array_map(
+    'intval',
+    array_column(
+        fetch_all_rows($conn, "SELECT facility_id FROM room_facilities WHERE room_id = ?", 'i', [$roomId]),
+        'facility_id'
+    )
+);
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form = clean_room_input($_POST);
+    $selectedFacilities = clean_facility_ids($_POST['facility_ids'] ?? []);
     $errors = validate_room_input($form);
 
+    if (!validate_facility_ids($conn, $selectedFacilities)) {
+        $errors['facility_ids'] = 'Pilihan fasilitas tidak valid.';
+    }
+
     if (empty($errors)) {
+        mysqli_begin_transaction($conn);
+
         $stmt = mysqli_prepare(
             $conn,
             "UPDATE rooms
@@ -56,6 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $roomId
         );
         mysqli_stmt_execute($stmt);
+        sync_room_facilities($conn, $roomId, $selectedFacilities);
+        mysqli_commit($conn);
 
         redirect('pages/rooms.php?message=updated');
     }
@@ -147,6 +164,26 @@ require_once __DIR__ . '/../includes/header.php';
                     <div class="form-field form-field-wide">
                         <label for="description">Deskripsi</label>
                         <textarea id="description" name="description" class="form-control" rows="4"><?= e($form['description']); ?></textarea>
+                    </div>
+
+                    <div class="form-field form-field-wide">
+                        <span class="form-label-text">Fasilitas</span>
+                        <div class="facility-options">
+                            <?php foreach ($facilities as $facility): ?>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="facility_ids[]"
+                                        value="<?= e($facility['id']); ?>"
+                                        <?= in_array((int) $facility['id'], $selectedFacilities, true) ? 'checked' : ''; ?>
+                                    >
+                                    <span><?= e($facility['facility_name']); ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php if (isset($errors['facility_ids'])): ?>
+                            <span class="form-error"><?= e($errors['facility_ids']); ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
 

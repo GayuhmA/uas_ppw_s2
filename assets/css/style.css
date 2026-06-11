@@ -1701,6 +1701,14 @@ a:hover {
     margin-bottom: 0.45rem;
 }
 
+.form-label-text {
+    color: var(--ink);
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 0.45rem;
+}
+
 .form-field .form-control,
 .form-field .form-select,
 .room-search-form .form-control {
@@ -1724,6 +1732,93 @@ a:hover {
     justify-content: flex-end;
     margin-top: 1rem;
     padding-top: 1rem;
+}
+
+.facility-options {
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.facility-options label {
+    align-items: center;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    font-size: 0.82rem;
+    font-weight: 800;
+    gap: 0.52rem;
+    margin: 0;
+    min-height: 42px;
+    padding: 0.62rem 0.72rem;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.facility-options label:has(input:checked) {
+    background: var(--brand-soft);
+    border-color: rgba(42, 148, 219, 0.34);
+    color: var(--brand-dark);
+}
+
+.facility-options input {
+    accent-color: var(--brand);
+    flex: 0 0 auto;
+    height: 16px;
+    margin: 0;
+    width: 16px;
+}
+
+.facility-layout {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: minmax(280px, 0.58fr) minmax(0, 1fr);
+}
+
+.facility-create-form {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.facility-table-list {
+    display: grid;
+}
+
+.facility-row {
+    align-items: center;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.9rem 1rem;
+}
+
+.facility-row:first-child {
+    border-top: 0;
+}
+
+.facility-row strong,
+.facility-row span {
+    display: block;
+}
+
+.facility-row strong {
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.facility-row span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-top: 0.18rem;
+}
+
+.facility-row form {
+    flex: 0 0 auto;
 }
 
 .room-detail-layout {
@@ -1794,6 +1889,23 @@ a:hover {
     font-size: 0.76rem;
     font-weight: 800;
     padding: 0.38rem 0.68rem;
+}
+
+.room-facility-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.78rem;
+}
+
+.room-facility-list span {
+    background: var(--brand-soft);
+    border: 1px solid rgba(42, 148, 219, 0.14);
+    border-radius: 999px;
+    color: var(--brand-dark);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.3rem 0.52rem;
 }
 
 .app-footer {
@@ -1925,7 +2037,8 @@ a:hover {
 
     .room-summary-grid,
     .rooms-grid,
-    .room-detail-layout {
+    .room-detail-layout,
+    .facility-layout {
         grid-template-columns: 1fr;
     }
 
