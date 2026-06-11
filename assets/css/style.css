@@ -1312,6 +1312,25 @@ a:hover {
     font-weight: 800;
 }
 
+.table-muted {
+    color: var(--muted);
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    margin-top: 0.18rem;
+}
+
+.table-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.38rem;
+}
+
+.table-actions form {
+    margin: 0;
+}
+
 .reservation-status {
     border-radius: 999px;
     display: inline-flex;
@@ -1554,6 +1573,20 @@ a:hover {
     min-width: 220px;
 }
 
+.reservation-search-form {
+    min-width: min(100%, 620px);
+}
+
+.reservation-search-form .form-select {
+    border-color: var(--border);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 0.86rem;
+    font-weight: 700;
+    min-height: 44px;
+    min-width: 160px;
+}
+
 .rooms-grid {
     display: grid;
     gap: 0.8rem;
@@ -1741,6 +1774,104 @@ a:hover {
     justify-content: flex-end;
     margin-top: 1rem;
     padding-top: 1rem;
+}
+
+.reservation-form-layout {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+}
+
+.reservation-help-panel {
+    align-self: start;
+}
+
+.reservation-help-list {
+    display: grid;
+    gap: 0.72rem;
+    padding: 1rem;
+}
+
+.reservation-help-list div {
+    align-items: flex-start;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: grid;
+    gap: 0.68rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 0.78rem;
+}
+
+.reservation-help-list strong {
+    align-items: center;
+    background: var(--brand-soft);
+    border: 1px solid rgba(42, 148, 219, 0.18);
+    border-radius: 8px;
+    color: var(--brand-dark);
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 800;
+    height: 28px;
+    justify-content: center;
+    width: 28px;
+}
+
+.reservation-help-list span {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.55;
+}
+
+.reservation-summary-box {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+}
+
+.reservation-summary-box h2 {
+    color: var(--ink);
+    font-size: 1.12rem;
+    font-weight: 800;
+    margin: 0.18rem 0 0.85rem;
+}
+
+.reservation-summary-box dl {
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.reservation-summary-box div {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.72rem;
+}
+
+.reservation-summary-box dt {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.reservation-summary-box dd {
+    color: var(--ink);
+    font-size: 0.86rem;
+    font-weight: 800;
+    margin: 0.18rem 0 0;
+}
+
+.reservation-summary-box p {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.6;
+    margin: 0.85rem 0 0;
 }
 
 .facility-options {
@@ -2190,7 +2321,8 @@ a:hover {
     .room-summary-grid,
     .rooms-grid,
     .room-detail-layout,
-    .facility-layout {
+    .facility-layout,
+    .reservation-form-layout {
         grid-template-columns: 1fr;
     }
 
@@ -2385,6 +2517,7 @@ a:hover {
     .content-actions,
     .content-topbar .btn,
     .room-search-form,
+    .reservation-search-form,
     .room-search-form .btn,
     .form-actions,
     .form-actions .btn {
@@ -2392,6 +2525,7 @@ a:hover {
     }
 
     .room-search-form,
+    .reservation-search-form,
     .form-actions {
         align-items: stretch;
         flex-direction: column;
@@ -2399,18 +2533,23 @@ a:hover {
 
     .room-summary-grid,
     .form-grid,
-    .facility-card-grid {
+    .facility-card-grid,
+    .reservation-summary-box dl {
         grid-template-columns: 1fr;
     }
 
     .facility-card-footer,
-    .facility-usage div {
+    .facility-usage div,
+    .table-actions {
         align-items: flex-start;
         flex-direction: column;
     }
 
     .facility-card-footer form,
-    .facility-delete-btn {
+    .facility-delete-btn,
+    .table-actions,
+    .table-actions form,
+    .table-actions .btn {
         width: 100%;
     }
 

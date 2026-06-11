@@ -79,7 +79,7 @@ if (!function_exists('sidebar_icon')) {
                 <span class="sidebar-label">Manajemen</span>
                 <nav class="sidebar-nav">
                     <?php if (is_admin()): ?>
-                        <a class="sidebar-link <?= active_nav('pages/reservations.php'); ?>" href="<?= url('pages/reservations.php'); ?>">
+                        <a class="sidebar-link <?= active_nav_group(['pages/reservations.php', 'pages/reservation-create.php', 'pages/reservation-edit.php', 'pages/reservation-delete.php', 'pages/reservation-status.php']); ?>" href="<?= url('pages/reservations.php'); ?>">
                             <span class="sidebar-icon"><?= sidebar_icon('reservations'); ?></span>
                             <span>Reservasi</span>
                         </a>
@@ -88,7 +88,7 @@ if (!function_exists('sidebar_icon')) {
                             <span>Fasilitas</span>
                         </a>
                     <?php else: ?>
-                        <a class="sidebar-link <?= active_nav('pages/reservations.php'); ?>" href="<?= url('pages/reservations.php'); ?>">
+                        <a class="sidebar-link <?= active_nav_group(['pages/reservations.php', 'pages/reservation-create.php', 'pages/reservation-edit.php', 'pages/reservation-delete.php', 'pages/reservation-status.php']); ?>" href="<?= url('pages/reservations.php'); ?>">
                             <span class="sidebar-icon"><?= sidebar_icon('my-reservations'); ?></span>
                             <span>Reservasi Saya</span>
                         </a>
