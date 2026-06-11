@@ -37,6 +37,21 @@ function active_nav($path)
     return $currentPath === $targetPath ? 'active' : '';
 }
 
+function active_nav_group($paths)
+{
+    $currentPath = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+
+    foreach ($paths as $path) {
+        $targetPath = trim(url($path), '/');
+
+        if ($currentPath === $targetPath) {
+            return 'active';
+        }
+    }
+
+    return '';
+}
+
 function redirect($path)
 {
     header('Location: ' . url($path));

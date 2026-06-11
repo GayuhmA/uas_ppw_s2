@@ -1354,6 +1354,354 @@ a:hover {
     margin: 0.25rem 0 0;
 }
 
+.content-topbar {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.content-topbar h1 {
+    color: var(--ink);
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    font-weight: 800;
+    letter-spacing: 0;
+    margin: 0;
+}
+
+.content-topbar p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.6;
+    margin: 0.35rem 0 0;
+}
+
+.content-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.app-alert {
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    padding: 0.8rem 0.95rem;
+}
+
+.alert-success-lite {
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.22);
+    color: #0f766e;
+}
+
+.alert-danger-lite {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.18);
+    color: #b91c1c;
+}
+
+.room-summary-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 1rem;
+}
+
+.room-summary-grid article {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 14px 32px rgba(31, 42, 55, 0.045);
+    padding: 1rem;
+}
+
+.room-summary-grid span {
+    color: var(--muted);
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.room-summary-grid strong {
+    color: var(--ink);
+    display: block;
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-top: 0.45rem;
+}
+
+.room-toolbar {
+    align-items: center;
+}
+
+.room-search-form {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    min-width: min(100%, 420px);
+}
+
+.room-search-form .form-control {
+    min-width: 220px;
+}
+
+.rooms-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 1rem;
+}
+
+.room-card {
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-width: 0;
+    padding: 1rem;
+}
+
+.room-card-topline {
+    align-items: center;
+    display: flex;
+    gap: 0.55rem;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+}
+
+.room-status,
+.room-capacity {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.28rem 0.58rem;
+    white-space: nowrap;
+}
+
+.room-capacity {
+    background: var(--surface-subtle);
+    color: var(--muted);
+}
+
+.status-room-available {
+    background: rgba(20, 184, 166, 0.12);
+    color: #0f766e;
+}
+
+.status-room-maintenance {
+    background: rgba(245, 158, 11, 0.15);
+    color: #9a5b00;
+}
+
+.status-room-unavailable {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+}
+
+.room-card h3 {
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.room-location {
+    color: var(--brand-dark);
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin: 0.35rem 0 0;
+}
+
+.room-description {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.58;
+    margin: 0.72rem 0 0;
+    min-height: 3.95rem;
+}
+
+.room-card-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1rem;
+}
+
+.room-card-actions form {
+    margin: 0;
+}
+
+.btn-danger-lite {
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.18);
+    color: #b91c1c;
+}
+
+.btn-danger-lite:hover,
+.btn-danger-lite:focus {
+    background: rgba(220, 38, 38, 0.13);
+    border-color: rgba(220, 38, 38, 0.28);
+    color: #991b1b;
+}
+
+.pagination-bar {
+    display: flex;
+    gap: 0.4rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.pagination-bar a {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 800;
+    height: 36px;
+    justify-content: center;
+    width: 36px;
+}
+
+.pagination-bar a.active,
+.pagination-bar a:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #ffffff;
+}
+
+.form-panel {
+    padding: 1rem;
+}
+
+.form-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-field {
+    min-width: 0;
+}
+
+.form-field-wide {
+    grid-column: 1 / -1;
+}
+
+.form-field label {
+    color: var(--ink);
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 0.45rem;
+}
+
+.form-field .form-control,
+.form-field .form-select,
+.room-search-form .form-control {
+    border-color: var(--border);
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+    min-height: 44px;
+}
+
+.form-field textarea.form-control {
+    min-height: 128px;
+}
+
+.form-actions {
+    align-items: center;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 0.55rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.room-detail-layout {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.75fr);
+    margin-bottom: 1rem;
+}
+
+.room-detail-body {
+    padding: 1rem;
+}
+
+.room-detail-list {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+}
+
+.room-detail-list div {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem;
+}
+
+.room-detail-list dt,
+.room-description-block span {
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+.room-detail-list dd {
+    color: var(--ink);
+    font-size: 0.92rem;
+    font-weight: 800;
+    margin: 0.18rem 0 0;
+}
+
+.room-description-block {
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.room-description-block p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 650;
+    line-height: 1.65;
+    margin: 0.25rem 0 0;
+}
+
+.facility-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 1rem;
+}
+
+.facility-badges span {
+    background: var(--brand-soft);
+    border: 1px solid rgba(42, 148, 219, 0.14);
+    border-radius: 999px;
+    color: var(--brand-dark);
+    font-size: 0.76rem;
+    font-weight: 800;
+    padding: 0.38rem 0.68rem;
+}
+
 .app-footer {
     background: rgba(255, 255, 255, 0.9);
     border-top: 1px solid var(--border);
@@ -1474,6 +1822,34 @@ a:hover {
 
     .insight-panel {
         min-height: auto;
+    }
+
+    .content-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .room-summary-grid,
+    .rooms-grid,
+    .room-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .room-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .room-search-form {
+        width: 100%;
+    }
+
+    .room-search-form .form-control {
+        min-width: 0;
+    }
+
+    .room-detail-list {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1645,5 +2021,39 @@ a:hover {
     .dashboard-table tbody td,
     .dashboard-table thead th {
         padding-inline: 0.55rem;
+    }
+
+    .content-actions,
+    .content-topbar .btn,
+    .room-search-form,
+    .room-search-form .btn,
+    .form-actions,
+    .form-actions .btn {
+        width: 100%;
+    }
+
+    .room-search-form,
+    .form-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .room-summary-grid,
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rooms-grid {
+        padding: 0.8rem;
+    }
+
+    .room-card-actions .btn,
+    .room-card-actions form,
+    .room-card-actions button {
+        width: 100%;
+    }
+
+    .pagination-bar {
+        justify-content: flex-start;
     }
 }

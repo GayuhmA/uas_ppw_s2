@@ -70,7 +70,7 @@ if (!function_exists('sidebar_icon')) {
                         <span class="sidebar-icon"><?= sidebar_icon('dashboard'); ?></span>
                         <span>Dashboard</span>
                     </a>
-                    <a class="sidebar-link <?= active_nav('pages/rooms.php'); ?>" href="<?= url('pages/rooms.php'); ?>">
+                    <a class="sidebar-link <?= active_nav_group(['pages/rooms.php', 'pages/room-detail.php', 'pages/room-create.php', 'pages/room-edit.php']); ?>" href="<?= url('pages/rooms.php'); ?>">
                         <span class="sidebar-icon"><?= sidebar_icon('rooms'); ?></span>
                         <span>Ruangan</span>
                     </a>
