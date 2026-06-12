@@ -42,6 +42,8 @@ $selectedFacilities = array_map(
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
+
     $form = clean_room_input($_POST);
     $selectedFacilities = clean_facility_ids($_POST['facility_ids'] ?? []);
     $errors = validate_room_input($form);
@@ -97,6 +99,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <section class="dashboard-panel form-panel">
             <form method="post" data-validate>
+                <?= csrf_field(); ?>
                 <div class="form-grid">
                     <div class="form-field">
                         <label for="room_name">Nama Ruangan</label>

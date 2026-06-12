@@ -19,7 +19,7 @@ if (!$reservation) {
 
 $isOwner = (int) $reservation['user_id'] === (int) $_SESSION['user_id'];
 
-if (!is_admin() && (!$isOwner || $reservation['status'] !== 'pending')) {
+if (!reservation_can_edit_details($reservation['status']) || (!is_admin() && !$isOwner)) {
     redirect('pages/reservations.php?error=forbidden');
 }
 
@@ -42,6 +42,8 @@ $form = [
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
+
     $form = clean_reservation_input($_POST);
     $errors = validate_reservation_input($conn, $form, $reservationId);
 
@@ -87,6 +89,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <section class="dashboard-panel form-panel">
             <form method="post" data-validate data-reservation-form>
+                <?= csrf_field(); ?>
                 <div class="form-grid">
                     <div class="form-field form-field-wide">
                         <label for="room_id">Ruangan</label>
@@ -117,6 +120,7 @@ require_once __DIR__ . '/../includes/header.php';
                             name="reservation_date"
                             class="form-control <?= isset($errors['reservation_date']) ? 'is-invalid-lite' : ''; ?>"
                             value="<?= e($form['reservation_date']); ?>"
+                            min="<?= e(date('Y-m-d')); ?>"
                             data-required
                             data-message="Tanggal reservasi wajib diisi."
                         >

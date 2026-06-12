@@ -9,6 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('pages/rooms.php');
 }
 
+require_valid_csrf();
+
 $roomId = (int) ($_POST['id'] ?? 0);
 
 if ($roomId <= 0) {

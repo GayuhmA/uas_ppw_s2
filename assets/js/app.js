@@ -174,4 +174,35 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeReservationFilters();
     initializeToasts();
     clearFlashParams();
+    initializeScheduleTabs();
 });
+
+function initializeScheduleTabs() {
+    const pills = document.querySelectorAll('[data-schedule-target]');
+
+    if (!pills.length) {
+        return;
+    }
+
+    pills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            pills.forEach(function (p) {
+                p.classList.remove('active');
+            });
+
+            pill.classList.add('active');
+
+            const targetId = pill.dataset.scheduleTarget;
+            const timeBoard = pill.closest('.schedule-grid').querySelector('.time-board');
+            const rows = timeBoard.querySelectorAll('.timeline-row');
+
+            rows.forEach(function (row) {
+                if (row.id === targetId) {
+                    row.style.display = 'grid';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+}

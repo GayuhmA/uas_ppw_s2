@@ -17,17 +17,19 @@ if (!$reservation) {
     redirect('pages/reservations.php?error=not_found');
 }
 
-$statusOptions = reservation_status_options();
+$statusOptions = reservation_status_transition_options($reservation['status']);
 $formStatus = $reservation['status'];
 $note = '';
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
+
     $formStatus = trim($_POST['status'] ?? '');
     $note = trim($_POST['note'] ?? '');
 
     if (!isset($statusOptions[$formStatus])) {
-        $errors['status'] = 'Status reservasi tidak valid.';
+        $errors['status'] = 'Perubahan status tidak valid untuk kondisi reservasi saat ini.';
     }
 
     if (
@@ -39,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reservation['reservation_date'],
             $reservation['start_time'],
             $reservation['end_time'],
-            $reservationId
+            $reservationId,
+            ['approved']
         )
     ) {
         $errors['status'] = 'Reservasi tidak dapat disetujui karena jadwal bentrok.';
@@ -52,6 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = mysqli_prepare($conn, "UPDATE reservations SET status = ? WHERE id = ?");
             mysqli_stmt_bind_param($stmt, 'si', $formStatus, $reservationId);
             mysqli_stmt_execute($stmt);
+        }
+
+        if ($formStatus !== $reservation['status'] || $note !== '') {
             insert_reservation_log($conn, $reservationId, $reservation['status'], $formStatus, (int) $_SESSION['user_id'], $note);
         }
 
@@ -80,6 +86,7 @@ require_once __DIR__ . '/../includes/header.php';
         <section class="reservation-form-layout">
             <article class="dashboard-panel form-panel">
                 <form method="post" data-validate>
+                    <?= csrf_field(); ?>
                     <input type="hidden" name="id" value="<?= e($reservation['id']); ?>">
                     <div class="reservation-summary-box">
                         <span class="panel-kicker">Detail pengajuan</span>

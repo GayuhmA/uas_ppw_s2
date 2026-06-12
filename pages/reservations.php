@@ -78,7 +78,6 @@ $reservations = fetch_all_rows(
 $messages = [
     'created' => 'Reservasi berhasil diajukan.',
     'cancelled' => 'Reservasi berhasil dibatalkan.',
-    'deleted' => 'Reservasi berhasil dihapus.',
     'status_updated' => 'Status reservasi berhasil diperbarui.',
     'updated' => 'Reservasi berhasil diperbarui.',
 ];
@@ -110,7 +109,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <h1><?= $isAdmin ? 'Kelola Reservasi' : 'Reservasi Saya'; ?></h1>
                 <p><?= $isAdmin ? 'Tinjau pengajuan ruangan dan kelola status reservasi.' : 'Ajukan dan pantau status reservasi ruangan Anda.'; ?></p>
             </div>
-            <a href="<?= url('pages/reservation-create.php'); ?>" class="btn btn-primary">Ajukan Reservasi</a>
+            <a href="<?= url('pages/reservation-create.php'); ?>" class="btn btn-primary"><?= $isAdmin ? 'Ajukan untuk Pemohon' : 'Ajukan Reservasi'; ?></a>
         </header>
 
         <?php if (isset($messages[$message]) || isset($errors[$error])): ?>
@@ -182,6 +181,11 @@ require_once __DIR__ . '/../includes/header.php';
                         </thead>
                         <tbody>
                             <?php foreach ($reservations as $reservation): ?>
+                                <?php
+                                    $canEdit = reservation_can_edit_details($reservation['status']);
+                                    $canCancelByAdmin = reservation_can_cancel_by_admin($reservation['status']);
+                                    $canManageStatus = count(reservation_status_transition_options($reservation['status'])) > 1;
+                                ?>
                                 <tr>
                                     <?php if ($isAdmin): ?>
                                         <td><?= e($reservation['user_name']); ?></td>
@@ -201,18 +205,33 @@ require_once __DIR__ . '/../includes/header.php';
                                     <td>
                                         <div class="table-actions">
                                             <?php if ($isAdmin): ?>
-                                                <a href="<?= url('pages/reservation-edit.php?id=' . $reservation['id']); ?>" class="btn btn-outline-primary btn-sm">Edit</a>
-                                                <a href="<?= url('pages/reservation-status.php?id=' . $reservation['id']); ?>" class="btn btn-outline-primary btn-sm">Status</a>
-                                                <form method="post" action="<?= url('pages/reservation-delete.php'); ?>">
-                                                    <input type="hidden" name="id" value="<?= e($reservation['id']); ?>">
-                                                    <button type="submit" class="btn btn-danger-lite btn-sm" data-confirm="Hapus reservasi ini?">Hapus</button>
-                                                </form>
-                                            <?php elseif ($reservation['status'] === 'pending'): ?>
-                                                <a href="<?= url('pages/reservation-edit.php?id=' . $reservation['id']); ?>" class="btn btn-outline-primary btn-sm">Edit</a>
-                                                <form method="post" action="<?= url('pages/reservation-delete.php'); ?>">
-                                                    <input type="hidden" name="id" value="<?= e($reservation['id']); ?>">
-                                                    <button type="submit" class="btn btn-danger-lite btn-sm" data-confirm="Batalkan reservasi ini?">Batalkan</button>
-                                                </form>
+                                                <?php if ($canEdit): ?>
+                                                    <a href="<?= url('pages/reservation-edit.php?id=' . $reservation['id']); ?>" class="btn btn-outline-primary btn-sm">Edit</a>
+                                                <?php endif; ?>
+                                                <?php if ($canManageStatus): ?>
+                                                    <a href="<?= url('pages/reservation-status.php?id=' . $reservation['id']); ?>" class="btn btn-outline-primary btn-sm">Status</a>
+                                                <?php endif; ?>
+                                                <?php if ($canCancelByAdmin): ?>
+                                                    <form method="post" action="<?= url('pages/reservation-delete.php'); ?>">
+                                                        <?= csrf_field(); ?>
+                                                        <input type="hidden" name="id" value="<?= e($reservation['id']); ?>">
+                                                        <button type="submit" class="btn btn-danger-lite btn-sm" data-confirm="Batalkan reservasi ini?">Batalkan</button>
+                                                    </form>
+                                                <?php endif; ?>
+                                                <?php if (!$canEdit && !$canManageStatus && !$canCancelByAdmin): ?>
+                                                    <span class="table-muted">Tidak ada aksi</span>
+                                                <?php endif; ?>
+                                            <?php elseif (reservation_can_edit_details($reservation['status']) || reservation_can_cancel_by_owner($reservation['status'])): ?>
+                                                <?php if (reservation_can_edit_details($reservation['status'])): ?>
+                                                    <a href="<?= url('pages/reservation-edit.php?id=' . $reservation['id']); ?>" class="btn btn-outline-primary btn-sm">Edit</a>
+                                                <?php endif; ?>
+                                                <?php if (reservation_can_cancel_by_owner($reservation['status'])): ?>
+                                                    <form method="post" action="<?= url('pages/reservation-delete.php'); ?>">
+                                                        <?= csrf_field(); ?>
+                                                        <input type="hidden" name="id" value="<?= e($reservation['id']); ?>">
+                                                        <button type="submit" class="btn btn-danger-lite btn-sm" data-confirm="Batalkan reservasi ini?">Batalkan</button>
+                                                    </form>
+                                                <?php endif; ?>
                                             <?php else: ?>
                                                 <span class="table-muted">Tidak ada aksi</span>
                                             <?php endif; ?>

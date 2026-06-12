@@ -573,7 +573,8 @@ a:hover {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 8px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 0.65rem;
 }
 
@@ -584,6 +585,7 @@ a:hover {
     font-weight: 800;
     grid-template-columns: repeat(4, 1fr);
     margin-bottom: 0.45rem;
+    min-width: 480px;
 }
 
 .timeline-row {
@@ -594,6 +596,7 @@ a:hover {
     grid-template-columns: repeat(5, 1fr);
     min-height: 46px;
     padding: 0.48rem 0;
+    min-width: 480px;
 }
 
 .timeline-block {
@@ -622,6 +625,96 @@ a:hover {
 .timeline-block.open {
     background: rgba(20, 184, 166, 0.13);
     color: #0f766e;
+}
+
+.room-availability-panel {
+    margin-bottom: 1rem;
+}
+
+.room-availability-header {
+    align-items: flex-start;
+}
+
+.room-availability-form {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.room-availability-form .form-control {
+    max-width: 170px;
+}
+
+.availability-board {
+    background: #ffffff;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.9rem 1rem 1.1rem;
+}
+
+.availability-labels {
+    color: var(--muted);
+    display: grid;
+    font-size: 0.72rem;
+    font-weight: 800;
+    grid-template-columns: repeat(8, 1fr);
+    margin-bottom: 0.55rem;
+    min-width: 920px;
+}
+
+.availability-row {
+    background:
+        repeating-linear-gradient(90deg, transparent 0, transparent calc(7.142857% - 1px), var(--line) calc(7.142857% - 1px), var(--line) 7.142857%);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(28, minmax(28px, 1fr));
+    min-height: 118px;
+    min-width: 920px;
+    overflow: hidden;
+    padding: 0.55rem 0;
+}
+
+.availability-open,
+.availability-block {
+    align-items: center;
+    border-radius: 8px;
+    display: flex;
+    font-size: 0.76rem;
+    font-weight: 800;
+    grid-row: 1;
+    min-width: 0;
+    overflow: hidden;
+    padding-inline: 0.72rem;
+    white-space: nowrap;
+}
+
+.availability-open {
+    background: rgba(20, 184, 166, 0.13);
+    color: #0f766e;
+    grid-column: 1 / -1;
+    margin: 0 0.55rem;
+    z-index: 1;
+}
+
+.availability-block {
+    box-shadow: 0 8px 18px rgba(31, 42, 55, 0.08);
+    grid-column: var(--start) / span var(--span);
+    margin-inline: 0.1rem;
+    z-index: 2;
+}
+
+.availability-approved {
+    background: #dceefe;
+    color: var(--brand-dark);
+}
+
+.availability-pending {
+    background: #fef3c7;
+    color: #9a5b00;
 }
 
 .review-strip {

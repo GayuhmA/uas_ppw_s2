@@ -2,7 +2,7 @@
     <footer class="app-footer">
         <div class="container">
             <p class="mb-0">&copy; <?= date('Y'); ?> Sistem Reservasi Ruangan Kampus.</p>
-            <p class="mb-0 text-secondary">Praktikum Pemrograman Web 1</p>
+            <p class="mb-0 text-secondary">Layanan peminjaman ruang yang tertata.</p>
         </div>
     </footer>
     <?php endif; ?>

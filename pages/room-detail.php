@@ -5,6 +5,8 @@ require_once __DIR__ . '/../includes/room_helpers.php';
 
 require_login();
 
+$isAdmin = is_admin();
+$currentUser = current_user();
 $roomId = (int) ($_GET['id'] ?? 0);
 
 if ($roomId <= 0) {
@@ -24,6 +26,41 @@ if (!$room) {
     redirect('pages/rooms.php?error=not_found');
 }
 
+$selectedDate = date('Y-m-d');
+$selectedDateRaw = trim($_GET['date'] ?? '');
+
+if (
+    preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDateRaw)
+    && strtotime($selectedDateRaw) !== false
+    && $selectedDateRaw >= date('Y-m-d')
+) {
+    $selectedDate = $selectedDateRaw;
+}
+
+function room_detail_timeline_grid($startTime, $endTime)
+{
+    $dayStart = 8 * 60;
+    $dayEnd = 22 * 60;
+    $startParts = explode(':', $startTime);
+    $endParts = explode(':', $endTime);
+    $startMinutes = ((int) ($startParts[0] ?? 0) * 60) + (int) ($startParts[1] ?? 0);
+    $endMinutes = ((int) ($endParts[0] ?? 0) * 60) + (int) ($endParts[1] ?? 0);
+
+    if ($endMinutes <= $dayStart || $startMinutes >= $dayEnd) {
+        return null;
+    }
+
+    $startMinutes = max($dayStart, $startMinutes);
+    $endMinutes = min($dayEnd, $endMinutes);
+    $start = (int) floor(($startMinutes - $dayStart) / 30) + 1;
+    $end = (int) ceil(($endMinutes - $dayStart) / 30) + 1;
+
+    return [
+        'start' => max(1, min(28, $start)),
+        'span' => max(1, min(29, $end) - max(1, min(28, $start))),
+    ];
+}
+
 $facilities = fetch_all_rows(
     $conn,
     "SELECT facilities.facility_name
@@ -35,11 +72,25 @@ $facilities = fetch_all_rows(
     [$roomId]
 );
 
+$availabilityReservations = fetch_all_rows(
+    $conn,
+    "SELECT user_id, start_time, end_time, purpose, status
+     FROM reservations
+     WHERE room_id = ?
+       AND reservation_date = ?
+       AND status IN ('pending', 'approved')
+     ORDER BY start_time ASC",
+    'is',
+    [$roomId, $selectedDate]
+);
+
 $upcomingReservations = fetch_all_rows(
     $conn,
-    "SELECT reservation_date, start_time, end_time, purpose, status
+    "SELECT user_id, reservation_date, start_time, end_time, purpose, status
      FROM reservations
-     WHERE room_id = ? AND reservation_date >= CURDATE()
+     WHERE room_id = ?
+       AND reservation_date >= CURDATE()
+       AND status IN ('pending', 'approved')
      ORDER BY reservation_date ASC, start_time ASC
      LIMIT 5",
     'i',
@@ -62,8 +113,10 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <div class="content-actions">
                 <a href="<?= url('pages/rooms.php'); ?>" class="btn btn-outline-primary">Kembali</a>
-                <?php if (is_admin()): ?>
+                <?php if ($isAdmin): ?>
                     <a href="<?= url('pages/room-edit.php?id=' . $room['id']); ?>" class="btn btn-primary">Edit Ruangan</a>
+                <?php elseif ($room['status'] === 'available'): ?>
+                    <a href="<?= url('pages/reservation-create.php?room_id=' . $room['id'] . '&reservation_date=' . urlencode($selectedDate)); ?>" class="btn btn-primary">Ajukan Ruangan Ini</a>
                 <?php endif; ?>
             </div>
         </header>
@@ -98,6 +151,12 @@ require_once __DIR__ . '/../includes/header.php';
                         <span>Deskripsi</span>
                         <p><?= e($room['description'] ?: 'Deskripsi ruangan belum tersedia.'); ?></p>
                     </div>
+                    <?php if (!$isAdmin): ?>
+                        <div class="room-description-block">
+                            <span>Catatan jadwal</span>
+                            <p>Status ruangan menunjukkan kesiapan fasilitas. Ketersediaan tanggal dan jam akan diperiksa saat pengajuan dikirim.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </article>
 
@@ -120,18 +179,80 @@ require_once __DIR__ . '/../includes/header.php';
             </aside>
         </section>
 
+        <section class="dashboard-panel room-availability-panel">
+            <div class="panel-header room-availability-header">
+                <div>
+                    <span class="panel-kicker">Ketersediaan</span>
+                    <h2>Jadwal <?= e(date('d M Y', strtotime($selectedDate))); ?></h2>
+                    <p class="panel-subtitle">Area hijau menunjukkan waktu yang masih kosong. Blok berwarna menandai jadwal yang sedang menunggu atau sudah disetujui.</p>
+                </div>
+                <form method="get" class="room-availability-form">
+                    <input type="hidden" name="id" value="<?= e($room['id']); ?>">
+                    <label class="visually-hidden" for="availability-date">Pilih tanggal</label>
+                    <input
+                        type="date"
+                        id="availability-date"
+                        name="date"
+                        class="form-control"
+                        value="<?= e($selectedDate); ?>"
+                        min="<?= e(date('Y-m-d')); ?>"
+                    >
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Lihat</button>
+                    <?php if (!$isAdmin && $room['status'] === 'available'): ?>
+                        <a href="<?= url('pages/reservation-create.php?room_id=' . $room['id'] . '&reservation_date=' . urlencode($selectedDate)); ?>" class="btn btn-primary btn-sm">Ajukan</a>
+                    <?php endif; ?>
+                </form>
+            </div>
+
+            <div class="availability-board">
+                <div class="availability-labels" aria-hidden="true">
+                    <span>08</span>
+                    <span>10</span>
+                    <span>12</span>
+                    <span>14</span>
+                    <span>16</span>
+                    <span>18</span>
+                    <span>20</span>
+                    <span>22</span>
+                </div>
+                <div class="availability-row">
+                    <span class="availability-open">Tersedia</span>
+                    <?php foreach ($availabilityReservations as $reservation): ?>
+                        <?php
+                            $grid = room_detail_timeline_grid($reservation['start_time'], $reservation['end_time']);
+
+                            if ($grid === null) {
+                                continue;
+                            }
+
+                            $canSeePurpose = $isAdmin || (int) $reservation['user_id'] === (int) $currentUser['id'];
+                            $label = $canSeePurpose ? $reservation['purpose'] : reservation_status_label($reservation['status']);
+                            $timeRange = substr($reservation['start_time'], 0, 5) . ' - ' . substr($reservation['end_time'], 0, 5);
+                        ?>
+                        <span
+                            class="availability-block <?= e('availability-' . $reservation['status']); ?>"
+                            style="--start: <?= e($grid['start']); ?>; --span: <?= e($grid['span']); ?>;"
+                            title="<?= e($timeRange . ' - ' . $label); ?>"
+                        >
+                            <?= e($timeRange); ?>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+
         <section class="dashboard-panel reservations-panel">
             <div class="panel-header">
                 <div>
                     <span class="panel-kicker">Jadwal</span>
-                    <h2>Reservasi mendatang</h2>
+                    <h2>Jadwal aktif mendatang</h2>
                 </div>
             </div>
 
             <?php if (empty($upcomingReservations)): ?>
                 <div class="empty-state">
                     <strong>Belum ada jadwal mendatang.</strong>
-                    <p>Ruangan ini belum memiliki reservasi yang akan datang.</p>
+                    <p>Ruangan ini belum memiliki reservasi menunggu atau disetujui.</p>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
@@ -146,10 +267,14 @@ require_once __DIR__ . '/../includes/header.php';
                         </thead>
                         <tbody>
                             <?php foreach ($upcomingReservations as $reservation): ?>
+                                <?php
+                                    $canSeePurpose = $isAdmin || (int) $reservation['user_id'] === (int) $currentUser['id'];
+                                    $purposeText = $canSeePurpose ? $reservation['purpose'] : reservation_status_label($reservation['status']);
+                                ?>
                                 <tr>
                                     <td><?= e(date('d M Y', strtotime($reservation['reservation_date']))); ?></td>
                                     <td><?= e(substr($reservation['start_time'], 0, 5)); ?> - <?= e(substr($reservation['end_time'], 0, 5)); ?></td>
-                                    <td><?= e($reservation['purpose']); ?></td>
+                                    <td><?= e($purposeText); ?></td>
                                     <td>
                                         <span class="reservation-status status-<?= e($reservation['status']); ?>">
                                             <?= e(reservation_status_label($reservation['status'] ?? 'pending')); ?>

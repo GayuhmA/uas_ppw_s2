@@ -9,6 +9,8 @@ if (is_logged_in()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
+
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
@@ -20,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($row = mysqli_fetch_assoc($result)) {
             if (password_verify($password, $row['password'])) {
+                session_regenerate_id(true);
+                unset($_SESSION['csrf_token']);
                 $_SESSION['user_id'] = $row['id'];
                 $_SESSION['user_name'] = $row['name'];
                 $_SESSION['role'] = $row['role'];
@@ -179,6 +183,7 @@ require_once __DIR__ . '/includes/header.php';
         <?php endif; ?>
 
         <form method="POST" action="<?= url('login.php') ?>" data-validate>
+            <?= csrf_field(); ?>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
                 <input type="email" class="form-control" id="email" name="email" 

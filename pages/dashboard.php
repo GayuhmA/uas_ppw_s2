@@ -218,17 +218,67 @@ foreach ($recentReservations as $reservation) {
     }
 }
 
-$chartDays = [];
-$maxDayReservations = 1;
-for ($i = 0; $i < 7; $i++) {
-    $date = date('Y-m-d', strtotime('+' . $i . ' day'));
-    $count = $chartCounts[$date] ?? 0;
-    $maxDayReservations = max($maxDayReservations, $count);
-    $chartDays[] = [
-        'date' => $date,
-        'label' => $i === 0 ? 'Hari ini' : dashboard_short_date($date),
-        'count' => $count,
-    ];
+function calculate_timeline_grid($startTime, $endTime) {
+    $startH = (int) date('H', strtotime($startTime));
+    $endH = (int) date('H', strtotime($endTime));
+
+    $startCol = max(1, min(5, floor(($startH - 8) / 2) + 1));
+    $endCol = max(1, min(6, ceil(($endH - 8) / 2) + 1));
+
+    $span = max(1, $endCol - $startCol);
+    return ['start' => $startCol, 'span' => $span];
+}
+
+$scheduleRooms = [];
+$scheduleReservations = [];
+
+if ($isAdmin) {
+    $scheduleRooms = dashboard_rows($conn, "SELECT id, room_name, capacity FROM rooms WHERE status = 'available' ORDER BY room_name ASC LIMIT 3");
+} else {
+    $scheduleRooms = dashboard_rows(
+        $conn,
+        "SELECT rooms.id, rooms.room_name, rooms.capacity
+         FROM reservations
+         INNER JOIN rooms ON rooms.id = reservations.room_id
+         WHERE reservations.user_id = ?
+           AND reservations.reservation_date = CURDATE()
+           AND reservations.status IN ('approved', 'pending')
+         GROUP BY rooms.id, rooms.room_name, rooms.capacity
+         ORDER BY MIN(reservations.start_time) ASC, rooms.room_name ASC",
+        'i',
+        [$user['id']]
+    );
+}
+
+$roomIds = array_column($scheduleRooms, 'id');
+
+if (!empty($roomIds)) {
+    $placeholders = implode(',', array_fill(0, count($roomIds), '?'));
+    $scheduleSql = "SELECT room_id, start_time, end_time, purpose, status
+         FROM reservations
+         WHERE reservation_date = CURDATE()
+         AND room_id IN ($placeholders)
+         AND status IN ('approved', 'pending')";
+    $scheduleTypes = str_repeat('i', count($roomIds));
+    $scheduleParams = $roomIds;
+
+    if (!$isAdmin) {
+        $scheduleSql .= " AND user_id = ?";
+        $scheduleTypes .= 'i';
+        $scheduleParams[] = (int) $user['id'];
+    }
+
+    $scheduleSql .= " ORDER BY start_time ASC";
+    $scheduleReservations = dashboard_rows($conn, $scheduleSql, $scheduleTypes, $scheduleParams);
+}
+
+$schedulePanelTitle = $isAdmin ? 'Jadwal Pemakaian Ruang' : 'Jadwal Saya Hari Ini';
+$scheduleEmptyTitle = $isAdmin ? 'Belum ada ruangan yang aktif.' : 'Belum ada jadwal kamu hari ini.';
+$scheduleEmptyText = $isAdmin ? '' : 'Reservasi menunggu atau disetujui untuk hari ini akan muncul di sini.';
+
+$roomReservations = [];
+foreach ($scheduleReservations as $res) {
+    $roomReservations[$res['room_id']][] = $res;
 }
 
 $statusTabs = [
@@ -332,25 +382,63 @@ require_once __DIR__ . '/../includes/header.php';
             <section class="dashboard-panel schedule-panel">
                 <div class="panel-header">
                     <div>
-                        <span class="panel-kicker">Agenda</span>
-                        <h2>Aktivitas 7 hari</h2>
+                        <span class="panel-kicker">Hari Ini</span>
+                        <h2><?= e($schedulePanelTitle); ?></h2>
                     </div>
-                    <span class="range-pill"><?= e(dashboard_short_date(date('Y-m-d'))); ?> - <?= e(dashboard_short_date(date('Y-m-d', strtotime('+6 day')))); ?></span>
+                    <span class="live-badge">Aktif</span>
                 </div>
-                <div class="reservation-bars" aria-label="Jumlah reservasi 7 hari ke depan">
-                    <?php foreach ($chartDays as $day): ?>
-                        <?php
-                            $barSize = $day['count'] > 0 ? max(14, round(($day['count'] / $maxDayReservations) * 100)) : 6;
-                        ?>
-                        <div class="reservation-bar-item">
-                            <div class="bar-track">
-                                <span style="--bar-size: <?= e($barSize); ?>%;"></span>
+
+                <?php if (empty($scheduleRooms)): ?>
+                    <div class="empty-state" style="margin: 2rem;">
+                        <strong><?= e($scheduleEmptyTitle); ?></strong>
+                        <?php if ($scheduleEmptyText !== ''): ?>
+                            <p><?= e($scheduleEmptyText); ?></p>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="schedule-grid" style="padding: 0 1rem 1.25rem;">
+                        <aside class="room-stack">
+                            <?php foreach ($scheduleRooms as $index => $room): ?>
+                                <button type="button" class="room-pill <?= $index === 0 ? 'active' : ''; ?>" data-schedule-target="room-<?= e($room['id']); ?>" style="text-align: left; width: 100%; border-width: 1px; border-style: solid; cursor: pointer;">
+                                    <span><?= e($room['room_name']); ?></span>
+                                    <small><?= e($room['capacity']); ?> kursi</small>
+                                </button>
+                            <?php endforeach; ?>
+                        </aside>
+
+                        <div class="time-board">
+                            <div class="time-labels">
+                                <span>08</span>
+                                <span>10</span>
+                                <span>13</span>
+                                <span>15</span>
                             </div>
-                            <strong><?= e($day['count']); ?></strong>
-                            <small><?= e($day['label']); ?></small>
+
+                            <?php foreach ($scheduleRooms as $index => $room): ?>
+                                <div class="timeline-row" id="room-<?= e($room['id']); ?>" style="display: <?= $index === 0 ? 'grid' : 'none'; ?>;">
+                                    <?php
+                                        $roomRes = $roomReservations[$room['id']] ?? [];
+                                        if (empty($roomRes)):
+                                    ?>
+                                        <span class="timeline-block open" style="--start: 1; --span: 5;">
+                                            Tersedia
+                                        </span>
+                                    <?php else: ?>
+                                        <?php foreach ($roomRes as $res): ?>
+                                            <?php
+                                                $grid = calculate_timeline_grid($res['start_time'], $res['end_time']);
+                                                $statusClass = $res['status'] === 'approved' ? 'approved' : 'pending';
+                                            ?>
+                                            <span class="timeline-block <?= $statusClass; ?>" style="--start: <?= $grid['start']; ?>; --span: <?= $grid['span']; ?>;" title="<?= e($res['purpose']); ?>">
+                                                <?= e($res['purpose']); ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
             </section>
 
             <section class="dashboard-panel insight-panel">

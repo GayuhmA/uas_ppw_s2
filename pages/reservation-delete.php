@@ -9,6 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('pages/reservations.php');
 }
 
+require_valid_csrf();
+
 $reservationId = (int) ($_POST['id'] ?? 0);
 
 if ($reservationId <= 0) {
@@ -22,14 +24,23 @@ if (!$reservation) {
 }
 
 if (is_admin()) {
-    $stmt = mysqli_prepare($conn, "DELETE FROM reservations WHERE id = ?");
+    if (!reservation_can_cancel_by_admin($reservation['status'])) {
+        redirect('pages/reservations.php?error=forbidden');
+    }
+
+    mysqli_begin_transaction($conn);
+
+    $stmt = mysqli_prepare($conn, "UPDATE reservations SET status = 'cancelled' WHERE id = ?");
     mysqli_stmt_bind_param($stmt, 'i', $reservationId);
     mysqli_stmt_execute($stmt);
+    insert_reservation_log($conn, $reservationId, $reservation['status'], 'cancelled', (int) $_SESSION['user_id'], 'Dibatalkan oleh admin.');
 
-    redirect('pages/reservations.php?message=deleted');
+    mysqli_commit($conn);
+
+    redirect('pages/reservations.php?message=cancelled');
 }
 
-if ((int) $reservation['user_id'] !== (int) $_SESSION['user_id'] || $reservation['status'] !== 'pending') {
+if ((int) $reservation['user_id'] !== (int) $_SESSION['user_id'] || !reservation_can_cancel_by_owner($reservation['status'])) {
     redirect('pages/reservations.php?error=forbidden');
 }
 

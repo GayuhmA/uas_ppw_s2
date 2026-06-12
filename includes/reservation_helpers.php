@@ -12,6 +12,36 @@ function reservation_status_options()
     ];
 }
 
+function reservation_status_transition_options($currentStatus)
+{
+    $statusOptions = reservation_status_options();
+    $transitions = [
+        'pending' => ['pending', 'approved', 'rejected', 'cancelled'],
+        'approved' => ['approved', 'completed', 'cancelled'],
+        'rejected' => ['rejected'],
+        'cancelled' => ['cancelled'],
+        'completed' => ['completed'],
+    ];
+    $allowedStatuses = $transitions[$currentStatus] ?? [$currentStatus];
+
+    return array_intersect_key($statusOptions, array_flip($allowedStatuses));
+}
+
+function reservation_can_edit_details($status)
+{
+    return $status === 'pending';
+}
+
+function reservation_can_cancel_by_admin($status)
+{
+    return in_array($status, ['pending', 'approved'], true);
+}
+
+function reservation_can_cancel_by_owner($status)
+{
+    return in_array($status, ['pending', 'approved'], true);
+}
+
 function clean_reservation_input($data)
 {
     return [
@@ -28,17 +58,30 @@ function reservation_time_is_valid($startTime, $endTime)
     return $startTime !== '' && $endTime !== '' && strtotime($startTime) < strtotime($endTime);
 }
 
-function reservation_has_conflict($conn, $roomId, $reservationDate, $startTime, $endTime, $excludeReservationId = 0)
+function reservation_has_conflict($conn, $roomId, $reservationDate, $startTime, $endTime, $excludeReservationId = 0, $blockingStatuses = ['pending', 'approved'])
 {
+    $statusOptions = reservation_status_options();
+    $blockingStatuses = array_values(array_filter(
+        $blockingStatuses,
+        function ($status) use ($statusOptions) {
+            return isset($statusOptions[$status]);
+        }
+    ));
+
+    if (empty($blockingStatuses)) {
+        return false;
+    }
+
+    $statusPlaceholders = implode(',', array_fill(0, count($blockingStatuses), '?'));
     $sql = "SELECT COUNT(*) AS total
             FROM reservations
             WHERE room_id = ?
               AND reservation_date = ?
-              AND status IN ('pending', 'approved')
+              AND status IN ($statusPlaceholders)
               AND start_time < ?
               AND end_time > ?";
-    $types = 'isss';
-    $params = [$roomId, $reservationDate, $endTime, $startTime];
+    $types = 'is' . str_repeat('s', count($blockingStatuses)) . 'ss';
+    $params = array_merge([$roomId, $reservationDate], $blockingStatuses, [$endTime, $startTime]);
 
     if ($excludeReservationId > 0) {
         $sql .= " AND id <> ?";
@@ -72,6 +115,10 @@ function validate_reservation_input($conn, $data, $excludeReservationId = 0)
 
     if ($data['reservation_date'] === '') {
         $errors['reservation_date'] = 'Tanggal reservasi wajib diisi.';
+    } elseif (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['reservation_date']) || strtotime($data['reservation_date']) === false) {
+        $errors['reservation_date'] = 'Tanggal reservasi tidak valid.';
+    } elseif ($data['reservation_date'] < date('Y-m-d')) {
+        $errors['reservation_date'] = 'Tanggal reservasi tidak boleh sebelum hari ini.';
     }
 
     if ($data['start_time'] === '') {
@@ -103,7 +150,7 @@ function validate_reservation_input($conn, $data, $excludeReservationId = 0)
             $excludeReservationId
         )
     ) {
-        $errors['reservation_date'] = 'Jadwal ruangan sudah dipakai pada waktu tersebut.';
+        $errors['reservation_date'] = 'Jadwal ruangan sudah dipakai atau sedang menunggu persetujuan pada waktu tersebut.';
     }
 
     return $errors;

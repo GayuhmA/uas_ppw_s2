@@ -11,6 +11,8 @@ $facilityName = '';
 $formError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
+
     $action = $_POST['action'] ?? '';
 
     if ($action === 'create') {
@@ -92,7 +94,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div>
                 <span class="dashboard-crumb">Halaman / <strong>Fasilitas</strong></span>
                 <h1>Kelola Fasilitas</h1>
-                <p>Atur fasilitas yang akan muncul pada data ruangan dan form reservasi.</p>
+                <p>Atur fasilitas yang akan muncul pada data ruangan.</p>
             </div>
             <a href="<?= url('pages/rooms.php'); ?>" class="btn btn-outline-primary">Lihat Ruangan</a>
         </header>
@@ -127,6 +129,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
                 <form method="post" data-validate class="facility-create-form">
+                    <?= csrf_field(); ?>
                     <input type="hidden" name="action" value="create">
                     <div class="form-field">
                         <label for="facility_name">Nama Fasilitas</label>
@@ -204,6 +207,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 <div class="facility-card-footer">
                                     <span><?= $roomTotal > 0 ? 'Aktif pada data ruangan' : 'Belum terhubung'; ?></span>
                                     <form method="post">
+                                        <?= csrf_field(); ?>
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?= e($facility['id']); ?>">
                                         <button type="submit" class="facility-delete-btn" data-confirm="Hapus fasilitas ini?">Hapus</button>

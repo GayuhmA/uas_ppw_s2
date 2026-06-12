@@ -5,6 +5,20 @@ require_once __DIR__ . '/../includes/reservation_helpers.php';
 
 require_login();
 
+$isAdmin = is_admin();
+$selectedUserId = $isAdmin ? (int) ($_GET['user_id'] ?? 0) : (int) $_SESSION['user_id'];
+$requesters = [];
+
+if ($isAdmin) {
+    $requesters = fetch_all_rows(
+        $conn,
+        "SELECT id, name, email
+         FROM users
+         WHERE role = 'user'
+         ORDER BY name ASC"
+    );
+}
+
 $rooms = fetch_all_rows(
     $conn,
     "SELECT id, room_name, location, capacity
@@ -14,7 +28,7 @@ $rooms = fetch_all_rows(
 );
 $form = [
     'room_id' => (int) ($_GET['room_id'] ?? 0),
-    'reservation_date' => '',
+    'reservation_date' => trim($_GET['reservation_date'] ?? ''),
     'start_time' => '',
     'end_time' => '',
     'purpose' => '',
@@ -22,8 +36,19 @@ $form = [
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
+
     $form = clean_reservation_input($_POST);
+    $selectedUserId = $isAdmin ? (int) ($_POST['user_id'] ?? 0) : (int) $_SESSION['user_id'];
     $errors = validate_reservation_input($conn, $form);
+
+    if ($isAdmin) {
+        if ($selectedUserId <= 0) {
+            $errors['user_id'] = 'Pemohon wajib dipilih.';
+        } elseif (!fetch_one($conn, "SELECT id FROM users WHERE id = ? AND role = 'user'", 'i', [$selectedUserId])) {
+            $errors['user_id'] = 'Pemohon tidak ditemukan.';
+        }
+    }
 
     if (empty($errors)) {
         $stmt = mysqli_prepare(
@@ -31,11 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "INSERT INTO reservations (user_id, room_id, reservation_date, start_time, end_time, purpose, status)
              VALUES (?, ?, ?, ?, ?, ?, 'pending')"
         );
-        $userId = (int) $_SESSION['user_id'];
         mysqli_stmt_bind_param(
             $stmt,
             'iissss',
-            $userId,
+            $selectedUserId,
             $form['room_id'],
             $form['reservation_date'],
             $form['start_time'],
@@ -60,7 +84,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div>
                 <span class="dashboard-crumb">Reservasi / <strong>Ajukan</strong></span>
                 <h1>Ajukan Reservasi</h1>
-                <p>Pilih ruangan dan jadwal penggunaan. Pengajuan akan masuk dengan status menunggu.</p>
+                <p><?= $isAdmin ? 'Pilih pemohon, ruangan, dan jadwal penggunaan.' : 'Pilih ruangan dan jadwal penggunaan. Pengajuan akan masuk dengan status menunggu.'; ?></p>
             </div>
             <a href="<?= url('pages/reservations.php'); ?>" class="btn btn-outline-primary">Kembali</a>
         </header>
@@ -68,7 +92,31 @@ require_once __DIR__ . '/../includes/header.php';
         <section class="reservation-form-layout">
             <article class="dashboard-panel form-panel">
                 <form method="post" data-validate data-reservation-form>
+                    <?= csrf_field(); ?>
                     <div class="form-grid">
+                        <?php if ($isAdmin): ?>
+                            <div class="form-field form-field-wide">
+                                <label for="user_id">Pemohon</label>
+                                <select
+                                    id="user_id"
+                                    name="user_id"
+                                    class="form-select <?= isset($errors['user_id']) ? 'is-invalid-lite' : ''; ?>"
+                                    data-required
+                                    data-message="Pemohon wajib dipilih."
+                                >
+                                    <option value="">Pilih pemohon</option>
+                                    <?php foreach ($requesters as $requester): ?>
+                                        <option value="<?= e($requester['id']); ?>" <?= $selectedUserId === (int) $requester['id'] ? 'selected' : ''; ?>>
+                                            <?= e($requester['name']); ?> - <?= e($requester['email']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <?php if (isset($errors['user_id'])): ?>
+                                    <span class="form-error"><?= e($errors['user_id']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
                         <div class="form-field form-field-wide">
                             <label for="room_id">Ruangan</label>
                             <select
@@ -98,6 +146,7 @@ require_once __DIR__ . '/../includes/header.php';
                                 name="reservation_date"
                                 class="form-control <?= isset($errors['reservation_date']) ? 'is-invalid-lite' : ''; ?>"
                                 value="<?= e($form['reservation_date']); ?>"
+                                min="<?= e(date('Y-m-d')); ?>"
                                 data-required
                                 data-message="Tanggal reservasi wajib diisi."
                             >
@@ -175,11 +224,11 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="reservation-help-list">
                     <div>
                         <strong>1</strong>
-                        <span>Pilih ruangan yang tersedia.</span>
+                        <span>Pilih ruangan yang siap digunakan. Jadwal tetap diperiksa saat pengajuan dikirim.</span>
                     </div>
                     <div>
                         <strong>2</strong>
-                        <span>Isi tanggal, jam, dan tujuan penggunaan.</span>
+                        <span><?= $isAdmin ? 'Tentukan pemohon, tanggal, jam, dan tujuan penggunaan.' : 'Isi tanggal, jam, dan tujuan penggunaan.'; ?></span>
                     </div>
                     <div>
                         <strong>3</strong>

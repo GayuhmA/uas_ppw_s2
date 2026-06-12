@@ -71,7 +71,7 @@ require_once __DIR__ . '/../includes/header.php';
             <div>
                 <span class="dashboard-crumb">Halaman / <strong>Ruangan</strong></span>
                 <h1>Daftar Ruangan</h1>
-                <p>Kelola data ruangan, kapasitas, lokasi, dan status ketersediaannya.</p>
+                <p><?= $isAdmin ? 'Kelola data ruangan, kapasitas, lokasi, dan status ketersediaannya.' : 'Pilih ruangan yang siap digunakan, lalu ajukan jadwal pemakaian.'; ?></p>
             </div>
             <?php if ($isAdmin): ?>
                 <a href="<?= url('pages/room-create.php'); ?>" class="btn btn-primary">Tambah Ruangan</a>
@@ -104,7 +104,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <strong><?= e($totalRooms); ?></strong>
             </article>
             <article>
-                <span>Siap dipakai</span>
+                <span>Siap digunakan</span>
                 <strong><?= e($availableRooms); ?></strong>
             </article>
             <article>
@@ -118,6 +118,9 @@ require_once __DIR__ . '/../includes/header.php';
                 <div>
                     <span class="panel-kicker">Ruangan</span>
                     <h2>Data ruangan kampus</h2>
+                    <?php if (!$isAdmin): ?>
+                        <p class="panel-subtitle">Status ruangan menunjukkan kesiapan fasilitas. Ketersediaan tanggal dan jam akan dicek saat reservasi diajukan.</p>
+                    <?php endif; ?>
                 </div>
                 <form class="room-search-form" method="get" action="<?= url('pages/rooms.php'); ?>">
                     <label class="visually-hidden" for="room-search">Cari ruangan</label>
@@ -167,9 +170,12 @@ require_once __DIR__ . '/../includes/header.php';
                                 <?php if ($isAdmin): ?>
                                     <a href="<?= url('pages/room-edit.php?id=' . $room['id']); ?>" class="btn btn-outline-primary btn-sm">Edit</a>
                                     <form method="post" action="<?= url('pages/room-delete.php'); ?>">
+                                        <?= csrf_field(); ?>
                                         <input type="hidden" name="id" value="<?= e($room['id']); ?>">
                                         <button type="submit" class="btn btn-danger-lite btn-sm" data-confirm="Hapus ruangan ini?">Hapus</button>
                                     </form>
+                                <?php elseif ($room['status'] === 'available'): ?>
+                                    <a href="<?= url('pages/reservation-create.php?room_id=' . $room['id']); ?>" class="btn btn-primary btn-sm">Ajukan</a>
                                 <?php endif; ?>
                             </div>
                         </article>
