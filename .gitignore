@@ -25,18 +25,7 @@ Thumbs.db
 *.swp
 *.swo
 
-# Local assistant/tooling notes
-.agents/
-.codex/
-.claude/
-.cursor/
-.continue/
-.windsurf/
-skills-lock.json
-TECH_SPEC.md
-DEVELOPMENT_CHECKLIST.md
-
-# Local planning/export drafts
+# Local workspace notes and drafts
 notes/
 drafts/
 *.bak
