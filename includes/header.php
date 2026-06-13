@@ -58,7 +58,20 @@ if (!function_exists('sidebar_icon')) {
                 <span>Reservasi Ruang</span>
             </a>
 
-            <div class="sidebar-menu">
+            <button
+                class="app-nav-toggle"
+                type="button"
+                data-app-nav-toggle
+                aria-controls="appNavigation"
+                aria-expanded="false"
+                aria-label="Buka navigasi"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="sidebar-menu" id="appNavigation" data-app-nav-menu>
                 <div class="sidebar-context">
                     <span>Kampus</span>
                     <strong>Gedung Perkuliahan</strong>
@@ -94,15 +107,15 @@ if (!function_exists('sidebar_icon')) {
                         </a>
                     <?php endif; ?>
                 </nav>
-            </div>
 
-            <div class="sidebar-account">
-                <span class="sidebar-avatar"><?= e(strtoupper(substr($_SESSION['user_name'] ?? 'P', 0, 1))); ?></span>
-                <div>
-                    <span><?= e($_SESSION['user_name'] ?? 'Pengguna'); ?></span>
-                    <small><?= e($_SESSION['role'] ?? 'user'); ?></small>
+                <div class="sidebar-account">
+                    <span class="sidebar-avatar"><?= e(strtoupper(substr($_SESSION['user_name'] ?? 'P', 0, 1))); ?></span>
+                    <div>
+                        <span><?= e($_SESSION['user_name'] ?? 'Pengguna'); ?></span>
+                        <small><?= e($_SESSION['role'] ?? 'user'); ?></small>
+                    </div>
+                    <a href="<?= url('logout.php'); ?>">Logout</a>
                 </div>
-                <a href="<?= url('logout.php'); ?>">Logout</a>
             </div>
         </aside>
 

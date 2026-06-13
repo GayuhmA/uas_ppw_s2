@@ -115,6 +115,27 @@ function clearFlashParams() {
     window.history.replaceState({}, '', url.pathname + url.search + url.hash);
 }
 
+function initializeAppNavigation() {
+    const toggle = document.querySelector('[data-app-nav-toggle]');
+    const menu = document.querySelector('[data-app-nav-menu]');
+
+    if (!toggle || !menu) {
+        return;
+    }
+
+    toggle.addEventListener('click', function () {
+        const isOpen = menu.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            menu.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const validatedForms = document.querySelectorAll('[data-validate]');
 
@@ -172,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     initializeReservationFilters();
+    initializeAppNavigation();
     initializeToasts();
     clearFlashParams();
     initializeScheduleTabs();

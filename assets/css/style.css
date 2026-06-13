@@ -85,6 +85,7 @@ a:hover {
 .public-nav-actions {
     align-items: center;
     display: flex;
+    gap: 0.55rem;
 }
 
 .app-shell {
@@ -136,7 +137,13 @@ a:hover {
     box-shadow: 0 4px 12px rgba(31, 42, 55, 0.15);
 }
 
+.app-nav-toggle {
+    display: none;
+}
+
 .sidebar-menu {
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     overflow-y: auto;
     padding-right: 0.12rem;
@@ -278,6 +285,7 @@ a:hover {
     display: grid;
     gap: 0.62rem;
     grid-template-columns: auto minmax(0, 1fr) auto;
+    margin-top: auto;
     padding: 0.72rem;
 }
 
@@ -2317,51 +2325,132 @@ a:hover {
 
 @media (max-width: 991.98px) {
     .app-shell {
-        display: block;
+        display: grid;
+        grid-template-columns: 1fr;
         height: auto;
+        min-height: 100vh;
         overflow: visible;
     }
 
     .app-sidebar {
+        background: rgba(255, 255, 255, 0.96);
+        border-bottom: 1px solid rgba(217, 228, 238, 0.9);
+        border-right: 0;
+        box-shadow: 0 12px 34px rgba(31, 42, 55, 0.08);
+        display: grid;
+        gap: 0;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto;
         height: auto;
         min-height: 0;
         overflow: visible;
-        position: static;
+        padding: 0.75rem 0.9rem;
+        position: sticky;
+        top: 0;
+        z-index: 1030;
     }
 
     .app-shell-main {
         height: auto;
+        min-height: calc(100vh - 108px);
         overflow: visible;
     }
 
     .sidebar-brand {
-        margin-bottom: 0.9rem;
+        margin-bottom: 0;
+        min-width: 0;
+    }
+
+    .app-nav-toggle {
+        align-items: center;
+        align-self: center;
+        appearance: none;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 10px 22px rgba(31, 42, 55, 0.055);
+        display: inline-flex;
+        flex-direction: column;
+        gap: 0.22rem;
+        height: 38px;
+        justify-content: center;
+        padding: 0;
+        width: 42px;
+    }
+
+    .app-nav-toggle span {
+        background: var(--ink);
+        border-radius: 999px;
+        display: block;
+        height: 2px;
+        width: 16px;
+    }
+
+    .app-nav-toggle:focus-visible {
+        box-shadow: 0 0 0 0.18rem rgba(42, 148, 219, 0.18);
+        outline: 0;
     }
 
     .sidebar-menu {
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 16px 36px rgba(31, 42, 55, 0.08);
+        display: none;
+        grid-column: 1 / -1;
+        margin-top: 0.72rem;
         overflow: visible;
-        padding-right: 0;
+        padding: 0.72rem;
     }
 
     .sidebar-context {
-        margin-bottom: 0.8rem;
+        display: none;
+    }
+
+    .sidebar-label {
+        display: none;
     }
 
     .sidebar-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
+        display: grid;
+        gap: 0.42rem;
+        white-space: normal;
+    }
+
+    .sidebar-nav {
+        margin-top: 0;
+    }
+
+    .sidebar-nav + .sidebar-nav {
+        margin-top: 0.42rem;
     }
 
     .sidebar-link {
+        border: 1px solid transparent;
         padding: 0.62rem 0.72rem;
+        transform: none;
+    }
+
+    .sidebar-menu.is-open {
+        display: grid;
+    }
+
+    .sidebar-link::before {
+        display: none;
+    }
+
+    .sidebar-link:hover,
+    .sidebar-link.active {
+        transform: none;
     }
 
     .sidebar-account {
         align-items: center;
         display: flex;
         gap: 0.7rem;
-        margin-top: 0.9rem;
+        margin-top: 0.62rem;
+        max-width: none;
+        padding: 0.58rem 0.66rem;
     }
 
     .sidebar-account a {
@@ -2389,6 +2478,7 @@ a:hover {
     }
 
     .dashboard-topbar-actions {
+        flex-wrap: wrap;
         width: 100%;
     }
 
@@ -2407,6 +2497,16 @@ a:hover {
 
     .dashboard-analytics {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-panel {
+        min-width: 0;
+    }
+
+    .reservations-panel .table-responsive,
+    .table-responsive,
+    .availability-board {
+        -webkit-overflow-scrolling: touch;
     }
 
     .insight-panel {
@@ -2436,6 +2536,7 @@ a:hover {
     }
 
     .room-search-form .form-control {
+        flex: 1 1 auto;
         min-width: 0;
     }
 
@@ -2450,27 +2551,53 @@ a:hover {
     }
 
     .app-sidebar {
-        padding: 0.85rem;
+        align-items: center;
+        padding: 0.68rem;
     }
 
     .sidebar-brand {
-        font-size: 0.94rem;
+        font-size: 0.88rem;
+        gap: 0.5rem;
+    }
+
+    .app-sidebar .brand-mark {
+        height: 32px;
+        width: 32px;
     }
 
     .sidebar-link {
-        flex: 1 1 calc(50% - 0.4rem);
-        font-size: 0.84rem;
+        border-color: var(--border);
+        font-size: 0.8rem;
         justify-content: flex-start;
+        padding: 0.56rem 0.64rem;
+    }
+
+    .sidebar-icon {
+        height: 24px;
+        width: 24px;
     }
 
     .sidebar-account {
-        align-items: flex-start;
-        flex-direction: column;
         display: flex;
+        gap: 0.45rem;
+        margin-top: 0.58rem;
+        padding: 0.48rem;
+    }
+
+    .sidebar-account > div {
+        display: none;
+    }
+
+    .sidebar-avatar {
+        height: 30px;
+        width: 30px;
     }
 
     .sidebar-account a {
+        background: rgba(220, 38, 38, 0.08);
+        border-radius: 999px;
         margin-left: 0;
+        padding: 0.28rem 0.48rem;
     }
 
     .hero-section {
@@ -2488,6 +2615,10 @@ a:hover {
     }
 
     .hero-actions .btn {
+        width: 100%;
+    }
+
+    .public-nav-actions .btn {
         width: 100%;
     }
 
@@ -2546,11 +2677,13 @@ a:hover {
     }
 
     .dashboard-page {
-        padding: 0.85rem 0.78rem 1.6rem;
+        min-height: auto;
+        padding: 0.78rem 0.68rem 1.45rem;
     }
 
     .dashboard-topbar {
         gap: 0.75rem;
+        margin-bottom: 0.82rem;
     }
 
     .dashboard-topbar-actions {
@@ -2573,12 +2706,20 @@ a:hover {
         padding: 1rem;
     }
 
+    .dashboard-hero-card::after {
+        height: 150px;
+        right: -70px;
+        top: -74px;
+        width: 150px;
+    }
+
     .dashboard-hero-action {
         width: 100%;
     }
 
     .dashboard-stats {
         grid-template-columns: 1fr;
+        gap: 0.58rem;
     }
 
     .dashboard-stat strong {
@@ -2603,10 +2744,16 @@ a:hover {
     .panel-header {
         align-items: flex-start;
         flex-direction: column;
+        gap: 0.72rem;
+        padding: 0.82rem;
     }
 
     .panel-header .btn {
         width: 100%;
+    }
+
+    .dashboard-table {
+        min-width: 760px;
     }
 
     .dashboard-table tbody td,
@@ -2629,6 +2776,12 @@ a:hover {
     .form-actions {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .reservation-search-form .form-select,
+    .room-search-form .form-control,
+    .room-search-form .btn {
+        width: 100%;
     }
 
     .room-summary-grid,
@@ -2657,6 +2810,16 @@ a:hover {
         padding: 0.8rem;
     }
 
+    .room-card {
+        padding: 0.9rem;
+    }
+
+    .room-card-topline {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.42rem;
+    }
+
     .room-card-actions .btn,
     .room-card-actions form,
     .room-card-actions button {
@@ -2665,5 +2828,21 @@ a:hover {
 
     .pagination-bar {
         justify-content: flex-start;
+    }
+
+    .toast-stack {
+        left: 0.68rem;
+        max-width: none;
+        right: 0.68rem;
+        top: 0.68rem;
+    }
+
+    .availability-board {
+        padding: 0.75rem;
+    }
+
+    .availability-labels,
+    .availability-row {
+        min-width: 760px;
     }
 }
