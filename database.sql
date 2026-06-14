@@ -94,3 +94,153 @@ INSERT INTO reservations (user_id, room_id, reservation_date, start_time, end_ti
 (2, 3, CURDATE() + INTERVAL 5 DAY, '09:00:00', '15:00:00', 'Seminar Teknologi Informasi', 'approved'),
 (3, 4, CURDATE() + INTERVAL 1 DAY, '10:00:00', '12:00:00', 'Rapat Himpunan', 'rejected'),
 (2, 1, CURDATE() + INTERVAL 3 DAY, '10:00:00', '12:00:00', 'Diskusi Kelompok Belajar', 'pending');
+
+DROP VIEW IF EXISTS v_reservation_details;
+DROP VIEW IF EXISTS v_room_facility_summary;
+DROP FUNCTION IF EXISTS fn_reservation_duration_minutes;
+DROP FUNCTION IF EXISTS fn_room_is_available;
+DROP TRIGGER IF EXISTS trg_reservations_before_insert;
+DROP TRIGGER IF EXISTS trg_reservations_before_update;
+DROP TRIGGER IF EXISTS trg_reservations_after_update_status;
+
+DELIMITER $$
+
+CREATE FUNCTION fn_reservation_duration_minutes(p_start_time TIME, p_end_time TIME)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    RETURN TIMESTAMPDIFF(
+        MINUTE,
+        TIMESTAMP(CURDATE(), p_start_time),
+        TIMESTAMP(CURDATE(), p_end_time)
+    );
+END$$
+
+CREATE FUNCTION fn_room_is_available(
+    p_room_id INT,
+    p_reservation_date DATE,
+    p_start_time TIME,
+    p_end_time TIME,
+    p_exclude_reservation_id INT
+)
+RETURNS TINYINT
+READS SQL DATA
+BEGIN
+    DECLARE v_ready_room INT DEFAULT 0;
+    DECLARE v_conflict_total INT DEFAULT 0;
+
+    SELECT COUNT(*)
+    INTO v_ready_room
+    FROM rooms
+    WHERE id = p_room_id
+      AND status = 'available';
+
+    IF v_ready_room = 0 THEN
+        RETURN 0;
+    END IF;
+
+    SELECT COUNT(*)
+    INTO v_conflict_total
+    FROM reservations
+    WHERE room_id = p_room_id
+      AND reservation_date = p_reservation_date
+      AND status IN ('pending', 'approved')
+      AND start_time < p_end_time
+      AND end_time > p_start_time
+      AND (p_exclude_reservation_id IS NULL OR id <> p_exclude_reservation_id);
+
+    RETURN IF(v_conflict_total = 0, 1, 0);
+END$$
+
+CREATE TRIGGER trg_reservations_before_insert
+BEFORE INSERT ON reservations
+FOR EACH ROW
+BEGIN
+    IF fn_reservation_duration_minutes(NEW.start_time, NEW.end_time) <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Jam selesai reservasi harus setelah jam mulai.';
+    END IF;
+
+    IF NEW.status IN ('pending', 'approved')
+       AND fn_room_is_available(NEW.room_id, NEW.reservation_date, NEW.start_time, NEW.end_time, NULL) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Ruangan tidak tersedia atau jadwal reservasi bentrok.';
+    END IF;
+END$$
+
+CREATE TRIGGER trg_reservations_before_update
+BEFORE UPDATE ON reservations
+FOR EACH ROW
+BEGIN
+    IF fn_reservation_duration_minutes(NEW.start_time, NEW.end_time) <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Jam selesai reservasi harus setelah jam mulai.';
+    END IF;
+
+    IF NEW.status IN ('pending', 'approved')
+       AND fn_room_is_available(NEW.room_id, NEW.reservation_date, NEW.start_time, NEW.end_time, NEW.id) = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Ruangan tidak tersedia atau jadwal reservasi bentrok.';
+    END IF;
+END$$
+
+CREATE TRIGGER trg_reservations_after_update_status
+AFTER UPDATE ON reservations
+FOR EACH ROW
+BEGIN
+    IF OLD.status <> NEW.status THEN
+        INSERT INTO reservation_logs (reservation_id, old_status, new_status, changed_by, note)
+        VALUES (
+            NEW.id,
+            OLD.status,
+            NEW.status,
+            COALESCE(@app_user_id, NEW.user_id),
+            LEFT(COALESCE(NULLIF(@app_note, ''), 'Perubahan status dicatat otomatis oleh trigger.'), 255)
+        );
+    END IF;
+END$$
+
+DELIMITER ;
+
+CREATE VIEW v_reservation_details AS
+SELECT
+    reservations.id,
+    reservations.user_id,
+    reservations.room_id,
+    reservations.reservation_date,
+    reservations.start_time,
+    reservations.end_time,
+    reservations.purpose,
+    reservations.status,
+    reservations.created_at,
+    reservations.updated_at,
+    fn_reservation_duration_minutes(reservations.start_time, reservations.end_time) AS duration_minutes,
+    users.name AS user_name,
+    users.email AS user_email,
+    rooms.room_name,
+    rooms.location,
+    rooms.capacity,
+    rooms.status AS room_status
+FROM reservations
+INNER JOIN users ON users.id = reservations.user_id
+INNER JOIN rooms ON rooms.id = reservations.room_id;
+
+CREATE VIEW v_room_facility_summary AS
+SELECT
+    rooms.id AS room_id,
+    rooms.room_name,
+    rooms.location,
+    rooms.capacity,
+    rooms.status,
+    COUNT(DISTINCT room_facilities.facility_id) AS facility_total,
+    GROUP_CONCAT(facilities.facility_name ORDER BY facilities.facility_name SEPARATOR ', ') AS facility_list,
+    COUNT(DISTINCT CASE
+        WHEN reservations.status IN ('pending', 'approved')
+             AND reservations.reservation_date >= CURDATE()
+        THEN reservations.id
+    END) AS active_reservation_total
+FROM rooms
+LEFT JOIN room_facilities ON room_facilities.room_id = rooms.id
+LEFT JOIN facilities ON facilities.id = room_facilities.facility_id
+LEFT JOIN reservations ON reservations.room_id = rooms.id
+GROUP BY rooms.id, rooms.room_name, rooms.location, rooms.capacity, rooms.status;

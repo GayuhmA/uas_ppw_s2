@@ -29,12 +29,13 @@ if (is_admin()) {
     }
 
     mysqli_begin_transaction($conn);
+    set_reservation_audit_context($conn, (int) $_SESSION['user_id'], 'Dibatalkan oleh admin.');
 
     $stmt = mysqli_prepare($conn, "UPDATE reservations SET status = 'cancelled' WHERE id = ?");
     mysqli_stmt_bind_param($stmt, 'i', $reservationId);
     mysqli_stmt_execute($stmt);
-    insert_reservation_log($conn, $reservationId, $reservation['status'], 'cancelled', (int) $_SESSION['user_id'], 'Dibatalkan oleh admin.');
 
+    clear_reservation_audit_context($conn);
     mysqli_commit($conn);
 
     redirect('pages/reservations.php?message=cancelled');
@@ -45,12 +46,13 @@ if ((int) $reservation['user_id'] !== (int) $_SESSION['user_id'] || !reservation
 }
 
 mysqli_begin_transaction($conn);
+set_reservation_audit_context($conn, (int) $_SESSION['user_id'], 'Dibatalkan oleh pemohon.');
 
 $stmt = mysqli_prepare($conn, "UPDATE reservations SET status = 'cancelled' WHERE id = ?");
 mysqli_stmt_bind_param($stmt, 'i', $reservationId);
 mysqli_stmt_execute($stmt);
-insert_reservation_log($conn, $reservationId, $reservation['status'], 'cancelled', (int) $_SESSION['user_id'], 'Dibatalkan oleh pemohon.');
 
+clear_reservation_audit_context($conn);
 mysqli_commit($conn);
 
 redirect('pages/reservations.php?message=cancelled');

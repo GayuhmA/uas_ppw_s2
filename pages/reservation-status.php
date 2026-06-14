@@ -41,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $reservation['reservation_date'],
             $reservation['start_time'],
             $reservation['end_time'],
-            $reservationId,
-            ['approved']
+            $reservationId
         )
     ) {
         $errors['status'] = 'Reservasi tidak dapat disetujui karena jadwal bentrok.';
@@ -50,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         mysqli_begin_transaction($conn);
+        set_reservation_audit_context($conn, (int) $_SESSION['user_id'], $note);
 
         if ($formStatus !== $reservation['status']) {
             $stmt = mysqli_prepare($conn, "UPDATE reservations SET status = ? WHERE id = ?");
@@ -57,10 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_execute($stmt);
         }
 
-        if ($formStatus !== $reservation['status'] || $note !== '') {
+        if ($formStatus === $reservation['status'] && $note !== '') {
             insert_reservation_log($conn, $reservationId, $reservation['status'], $formStatus, (int) $_SESSION['user_id'], $note);
         }
 
+        clear_reservation_audit_context($conn);
         mysqli_commit($conn);
         redirect('pages/reservations.php?message=status_updated');
     }

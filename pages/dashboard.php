@@ -97,9 +97,9 @@ function dashboard_stat_icon($name)
     return $icons[$name] ?? '';
 }
 
-$totalRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM rooms");
-$availableRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM rooms WHERE status = 'available'");
-$maintenanceRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM rooms WHERE status <> 'available'");
+$totalRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM v_room_facility_summary");
+$availableRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM v_room_facility_summary WHERE status = 'available'");
+$maintenanceRooms = dashboard_count($conn, "SELECT COUNT(*) AS total FROM v_room_facility_summary WHERE status <> 'available'");
 $facilityCount = dashboard_count($conn, "SELECT COUNT(*) AS total FROM facilities");
 $availabilityRate = $totalRooms > 0 ? round(($availableRooms / $totalRooms) * 100) : 0;
 
@@ -120,10 +120,8 @@ if ($isAdmin) {
     $recentReservations = dashboard_rows(
         $conn,
         "SELECT reservations.id, reservations.reservation_date, reservations.start_time, reservations.end_time,
-                reservations.purpose, reservations.status, rooms.room_name, users.name AS user_name
-         FROM reservations
-         INNER JOIN rooms ON rooms.id = reservations.room_id
-         INNER JOIN users ON users.id = reservations.user_id
+                reservations.purpose, reservations.status, reservations.room_name, reservations.user_name
+         FROM v_reservation_details AS reservations
          ORDER BY reservations.created_at DESC, reservations.id DESC
          LIMIT 6"
     );
@@ -179,10 +177,8 @@ if ($isAdmin) {
     $recentReservations = dashboard_rows(
         $conn,
         "SELECT reservations.id, reservations.reservation_date, reservations.start_time, reservations.end_time,
-                reservations.purpose, reservations.status, rooms.room_name, users.name AS user_name
-         FROM reservations
-         INNER JOIN rooms ON rooms.id = reservations.room_id
-         INNER JOIN users ON users.id = reservations.user_id
+                reservations.purpose, reservations.status, reservations.room_name, reservations.user_name
+         FROM v_reservation_details AS reservations
          WHERE reservations.user_id = ?
          ORDER BY reservations.created_at DESC, reservations.id DESC
          LIMIT 6",

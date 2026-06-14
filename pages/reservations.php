@@ -29,7 +29,7 @@ if (!$isAdmin) {
 }
 
 if ($search !== '') {
-    $conditions[] = '(rooms.room_name LIKE ? OR users.name LIKE ? OR reservations.purpose LIKE ?)';
+    $conditions[] = '(reservations.room_name LIKE ? OR reservations.user_name LIKE ? OR reservations.purpose LIKE ?)';
     $types .= 'sss';
     $keyword = '%' . $search . '%';
     $params[] = $keyword;
@@ -47,9 +47,7 @@ $whereSql = empty($conditions) ? '' : 'WHERE ' . implode(' AND ', $conditions);
 $totalReservations = fetch_count(
     $conn,
     "SELECT COUNT(*) AS total
-     FROM reservations
-     INNER JOIN rooms ON rooms.id = reservations.room_id
-     INNER JOIN users ON users.id = reservations.user_id
+     FROM v_reservation_details AS reservations
      $whereSql",
     $types,
     $params
@@ -64,10 +62,9 @@ if ($page > $totalPages) {
 $reservations = fetch_all_rows(
     $conn,
     "SELECT reservations.id, reservations.reservation_date, reservations.start_time, reservations.end_time,
-            reservations.purpose, reservations.status, rooms.room_name, rooms.location, users.name AS user_name
-     FROM reservations
-     INNER JOIN rooms ON rooms.id = reservations.room_id
-     INNER JOIN users ON users.id = reservations.user_id
+            reservations.purpose, reservations.status, reservations.room_name, reservations.location,
+            reservations.user_name
+     FROM v_reservation_details AS reservations
      $whereSql
      ORDER BY reservations.reservation_date DESC, reservations.start_time DESC, reservations.id DESC
      LIMIT ? OFFSET ?",

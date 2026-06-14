@@ -72,6 +72,20 @@ function reservation_has_conflict($conn, $roomId, $reservationDate, $startTime, 
         return false;
     }
 
+    $normalizedStatuses = $blockingStatuses;
+    sort($normalizedStatuses);
+
+    if ($normalizedStatuses === ['approved', 'pending']) {
+        $row = fetch_one(
+            $conn,
+            "SELECT fn_room_is_available(?, ?, ?, ?, ?) AS is_available",
+            'isssi',
+            [$roomId, $reservationDate, $startTime, $endTime, max(0, (int) $excludeReservationId)]
+        );
+
+        return (int) ($row['is_available'] ?? 0) !== 1;
+    }
+
     $statusPlaceholders = implode(',', array_fill(0, count($blockingStatuses), '?'));
     $sql = "SELECT COUNT(*) AS total
             FROM reservations
@@ -162,14 +176,25 @@ function fetch_reservation_detail($conn, $reservationId)
         $conn,
         "SELECT reservations.id, reservations.user_id, reservations.room_id, reservations.reservation_date,
                 reservations.start_time, reservations.end_time, reservations.purpose, reservations.status,
-                rooms.room_name, rooms.location, users.name AS user_name, users.email AS user_email
-         FROM reservations
-         INNER JOIN rooms ON rooms.id = reservations.room_id
-         INNER JOIN users ON users.id = reservations.user_id
+                reservations.duration_minutes, reservations.room_name, reservations.location,
+                reservations.user_name, reservations.user_email
+         FROM v_reservation_details AS reservations
          WHERE reservations.id = ?",
         'i',
         [$reservationId]
     );
+}
+
+function set_reservation_audit_context($conn, $changedBy, $note = '')
+{
+    $stmt = mysqli_prepare($conn, "SET @app_user_id = ?, @app_note = ?");
+    mysqli_stmt_bind_param($stmt, 'is', $changedBy, $note);
+    mysqli_stmt_execute($stmt);
+}
+
+function clear_reservation_audit_context($conn)
+{
+    mysqli_query($conn, "SET @app_user_id = NULL, @app_note = NULL");
 }
 
 function insert_reservation_log($conn, $reservationId, $oldStatus, $newStatus, $changedBy, $note = '')
