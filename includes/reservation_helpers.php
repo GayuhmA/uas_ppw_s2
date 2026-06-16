@@ -72,20 +72,6 @@ function reservation_has_conflict($conn, $roomId, $reservationDate, $startTime, 
         return false;
     }
 
-    $normalizedStatuses = $blockingStatuses;
-    sort($normalizedStatuses);
-
-    if ($normalizedStatuses === ['approved', 'pending']) {
-        $row = fetch_one(
-            $conn,
-            "SELECT fn_room_is_available(?, ?, ?, ?, ?) AS is_available",
-            'isssi',
-            [$roomId, $reservationDate, $startTime, $endTime, max(0, (int) $excludeReservationId)]
-        );
-
-        return (int) ($row['is_available'] ?? 0) !== 1;
-    }
-
     $statusPlaceholders = implode(',', array_fill(0, count($blockingStatuses), '?'));
     $sql = "SELECT COUNT(*) AS total
             FROM reservations
